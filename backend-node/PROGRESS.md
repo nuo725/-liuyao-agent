@@ -1,5 +1,12 @@
 # 宽窄·Orbit 业务后端开发进度
 
+## 版本管理要求（必须执行）
+
+- 每轮后端任务开始前先确认 Git 状态，避免误覆盖用户改动。
+- 每轮后端任务完成后必须运行必要校验（至少包含本轮相关的 generate/lint/test/contract check）。
+- 校验通过后必须 `git add` 相关后端文件并创建清晰 commit，确保后续可查看版本、对比 diff、回滚到任意提交。
+- 提交后再次确认工作区状态；若仍有未提交内容，必须在进度说明中写清原因。
+
 > 依据：[BACKEND_TDL_AND_DELIVERY_PLAN.md](../BACKEND_TDL_AND_DELIVERY_PLAN.md) · [PRODUCT_PRD.md](../PRODUCT_PRD.md)
 > 最后更新：2026-06-04
 
@@ -14,9 +21,9 @@
 | M2：仪式数据链路 | 第 3 周 | ✅ 已完成 | 9/9 |
 | M3：社区生产链路 | 第 4~5 周 | ✅ 已完成 | 12/12 |
 | M4：现有 UI 业务能力接入 | 第 6~7 周 | ✅ 已完成 | 20/20 |
-| M5：上线准备 | 第 8 周 | 🟡 起步 | 1/8 |
+| M5：上线准备 | 第 8 周 | 🟡 进行中 | 3/8 |
 
-**整体进度：78/92 个任务完成（85%）**
+**整体进度：80/92 个任务完成（87%）**
 
 ---
 
@@ -192,15 +199,15 @@
 | ID | 任务 | 状态 | 交付物 | 备注 |
 |----|------|------|--------|------|
 | OPS-001 | 数据迁移与种子数据 | ✅ 已完成 | `prisma/seed.js` | 种子脚本已创建 |
-| OPS-002 | 自动化备份与恢复演练 | 🔲 未开始 | — | — |
-| OPS-003 | 安全检查 | 🔲 未开始 | — | — |
+| OPS-002 | 自动化备份与恢复演练 | ✅ 已完成 | `scripts/db-backup.js` + `scripts/db-restore.js` + `docs/ops-runbook.md` | 支持 dry-run、备份 manifest、恢复演练命令；真实恢复需 PostgreSQL 环境 |
+| OPS-003 | 安全检查 | ✅ 已完成 | `scripts/security-check.js` + `npm run ops:security-check` | 检查 PostgreSQL URL、JWT Secret、生产默认项、Git ignore 和 lockfile |
 | OPS-004 | 性能压测 | 🔲 未开始 | — | — |
 | OPS-005 | 灰度开关与回滚 | 🔲 未开始 | — | — |
 | OPS-006 | 生产监控与告警 | 🔲 未开始 | — | — |
 | OPS-007 | 隐私与数据删除验收 | 🔲 未开始 | — | — |
 | OPS-008 | 前后端契约回归 | 🔲 未开始 | — | — |
 
-**Phase 8 进度：1/8**
+**Phase 8 进度：3/8**
 
 ---
 
@@ -227,19 +234,25 @@
 ```
 repo root/
 ├── .github/workflows/backend-node-ci.yml       # 后端 CI
-└── .gitignore                                  # 忽略 node_modules、uploads、.env
+└── .gitignore                                  # 忽略 node_modules、uploads、backups、.env
 
 backend-node/
 ├── .env                                        # 本地开发环境变量
 ├── .env.example                                # 环境变量模板
 ├── docker-compose.yml                          # PostgreSQL 16 容器
-├── package.json                                # 依赖与脚本（含 worker:outbox）
+├── package.json                                # 依赖与脚本（含 worker、backup、restore、安全检查）
 ├── eslint.config.js                            # ESLint 9 配置
+├── docs/
+│   └── ops-runbook.md                          # 备份、恢复、安全检查和 Git 版本管理步骤
 ├── openapi/
 │   └── openapi.yaml                            # OpenAPI 3.1 契约（全模块）
 ├── prisma/
 │   ├── schema.prisma                           # 36 个数据模型
 │   └── seed.js                                 # 种子数据脚本
+├── scripts/
+│   ├── db-backup.js                            # PostgreSQL 备份脚本
+│   ├── db-restore.js                           # PostgreSQL 恢复演练脚本
+│   └── security-check.js                       # 本地安全检查脚本
 ├── test/
 │   ├── helpers/
 │   │   ├── setup.js                            # 测试辅助函数
@@ -248,7 +261,8 @@ backend-node/
 │       ├── health.test.js                      # 健康检查测试
 │       ├── error-format.test.js                # 错误格式测试
 │       ├── community-moderation.test.js        # 社区审核规则测试
-│       └── analytics.test.js                   # Analytics 周指标辅助函数测试
+│       ├── analytics.test.js                   # Analytics 周指标辅助函数测试
+│       └── security-check.test.js              # 运维安全检查脚本测试
 ├── src/
 │   ├── app.js                                  # Express app 工厂
 │   ├── server.js                               # 服务器启动入口
@@ -294,7 +308,7 @@ backend-node/
 | 社区内容安全不足 | ✅ 已解决 | 发布/评论前审核、举报/屏蔽、审核记录和审核后台已实现 |
 | 同时开发全部模块 | ✅ 已避免 | 严格按 M0→M5 里程碑推进 |
 | 缺少自动化测试 | ⚠️ 部分解决 | CI、lint、基础测试与审核规则测试已补；业务集成测试待扩展 |
-| 无 Docker/PostgreSQL 环境 | ⚠️ 当前限制 | Docker Compose 已创建，需在有 Docker 环境时运行迁移 |
+| 无 Docker/PostgreSQL 环境 | ⚠️ 当前限制 | Docker Compose、备份/恢复脚本已创建，需在有 Docker 环境时运行迁移、seed 与恢复演练 |
 | 当前环境 npm 全局命令不可用 | ⚠️ 当前限制 | 使用内置 Node 直接调用本地 CLI；Git 已通过 `D:\Git\cmd\git.exe` 可用 |
 
 ---
@@ -308,9 +322,10 @@ backend-node/
 
 ### 优先级 P1（补齐 UI 后端能力）
 4. **补业务集成测试** → 覆盖审核、活动、账单、公开主页、通知、分享和 Analytics
+5. **OPS-004 ~ OPS-008** → 性能压测、灰度回滚、监控告警、隐私删除验收、前后端契约回归
 
 ### 优先级 P2（长期价值）
-5. **Phase 9** → 匿名身份、反馈帖、推荐深化
+6. **Phase 9** → 匿名身份、反馈帖、推荐深化
 
 ---
 
@@ -318,6 +333,7 @@ backend-node/
 
 | 日期 | 内容 |
 |------|------|
+| 2026-06-04 | 本轮追加：在文档最前面补 Git 版本管理要求；补 OPS-002 备份/恢复演练脚本与 Runbook、OPS-003 本地安全检查脚本和测试；更新进度至 80/92 |
 | 2026-06-04 | 本轮追加：补 SHARE-002 服务端 SVG 分享图、NOTIFY-006 系统通知运营入口、RITUAL-009 情绪校准与周期回顾；同步 OpenAPI；更新进度至 78/92 |
 | 2026-06-04 | 本轮追加：删除临时快照；补审核后台、公开主页、活动管理和 Analytics 指标；更新进度至 75/92 |
 | 2026-06-04 | 本轮更新：补 CI、Prisma 模型、社区审核与公开卡校验、通知、媒体、账单、同频、活动、分享、反馈、Outbox worker；修正进度统计口径 |

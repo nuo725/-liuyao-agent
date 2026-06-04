@@ -16,6 +16,9 @@
     "db:seed": "node prisma/seed.js",
     "db:reset": "npx prisma migrate reset",
     "db:studio": "npx prisma studio",
+    "db:backup": "node scripts/db-backup.js",
+    "db:restore": "node scripts/db-restore.js",
+    "ops:security-check": "node scripts/security-check.js",
     "worker:outbox": "node src/workers/outbox.js"
   },
   "engines": {
