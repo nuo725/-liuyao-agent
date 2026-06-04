@@ -1,0 +1,40 @@
+name: backend-node-ci
+
+on:
+  pull_request:
+    paths:
+      - "backend-node/**"
+      - ".github/workflows/backend-node-ci.yml"
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - "backend-node/**"
+      - ".github/workflows/backend-node-ci.yml"
+
+jobs:
+  lint-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend-node
+    env:
+      NODE_ENV: test
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/zhouyi_ci?schema=public
+      JWT_SECRET: ci_jwt_secret_change_me_please_32_chars_minimum
+      JWT_ACCESS_TTL: 7200
+      JWT_REFRESH_TTL: 2592000
+      SMS_PROVIDER: test
+      PAYMENT_CALLBACK_SECRET: ci_payment_callback_secret
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: backend-node/package-lock.json
+      - run: npm ci
+      - run: npm run db:generate
+      - run: npm run lint
+      - run: npm test

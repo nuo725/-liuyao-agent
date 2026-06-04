@@ -1,0 +1,2603 @@
+openapi: 3.1.0
+info:
+  title: 宽窄·Orbit 业务后端 API
+  description: |
+    宽窄·Orbit 社区型 APP 业务后端 API 契约。
+
+    ## 认证
+    使用 Bearer Token 方式：`Authorization: Bearer <access_token>`
+
+    ## 统一响应格式
+    ```json
+    { "success": true, "data": { ... } }
+    ```
+    错误时：
+    ```json
+    { "success": false, "error": { "code": "40001", "message": "..." }, "requestId": "req_xxx" }
+    ```
+
+    ## 错误码
+    | Code | 含义 |
+    |------|------|
+    | 40001 | 请求参数错误 |
+    | 40101 | 未登录或 Token 失效 |
+    | 40301 | 无权限或被限制 |
+    | 40401 | 资源不存在 |
+    | 40901 | 状态冲突 / 重复操作 / 额度不足 |
+    | 42901 | 请求频率过高 |
+    | 50000 | 服务内部错误 |
+    | 50401 | 上游超时 |
+
+    ## 幂等
+    写操作推荐携带 `Idempotency-Key` 请求头（UUID），相同 Key 的重复请求返回相同结果。
+
+    ## 分页
+    使用 page-based 分页：`?page=1&pageSize=20`，响应包含 `hasMore` 和 `nextPage`。
+  version: 1.0.0
+  contact:
+    name: 宽窄·Orbit Backend Team
+
+servers:
+  - url: http://localhost:3000/api/v1
+    description: Local development
+  - url: https://api.kuanzhai-orbit.com/api/v1
+    description: Production
+
+tags:
+  - name: health
+    description: 健康检查
+  - name: auth
+    description: 认证与会话
+  - name: profile
+    description: 个人中心
+  - name: credits
+    description: 额度管理
+  - name: billing
+    description: 会员与订单
+  - name: ritual
+    description: 仪式会话与解读
+  - name: community
+    description: 社区内容与互动
+  - name: notifications
+    description: 通知与消息中心
+  - name: match
+    description: 同频与匹配
+  - name: activities
+    description: 活动
+  - name: share
+    description: 分享卡
+  - name: support
+    description: 帮助与反馈
+  - name: media
+    description: 媒体上传
+
+paths:
+  # ─────────────── Health ───────────────
+  /health:
+    get:
+      tags: [health]
+      summary: 健康检查
+      operationId: getHealth
+      responses:
+        '200':
+          description: 服务正常
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  # ─────────────── Auth ───────────────
+  /auth/phone/send-code:
+    post:
+      tags: [auth]
+      summary: 发送短信验证码
+      operationId: sendPhoneCode
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [phone]
+              properties:
+                phone:
+                  type: string
+                  pattern: '^1[3-9]\d{9}$'
+                  example: '13800000000'
+      responses:
+        '200':
+          description: 验证码已发送
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+  /auth/phone/login:
+    post:
+      tags: [auth]
+      summary: 手机验证码登录
+      operationId: phoneLogin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [phone, code]
+              properties:
+                phone:
+                  type: string
+                code:
+                  type: string
+                  example: '123456'
+                agreementVersion:
+                  type: string
+                privacyVersion:
+                  type: string
+                consentedAt:
+                  type: string
+                  format: date-time
+      responses:
+        '200':
+          description: 登录成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/LoginResponse'
+
+  /auth/social/login:
+    post:
+      tags: [auth]
+      summary: 社交登录（微信/QQ）
+      operationId: socialLogin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [provider, authCode]
+              properties:
+                provider:
+                  type: string
+                  enum: [wechat, qq]
+                authCode:
+                  type: string
+                agreementVersion:
+                  type: string
+                privacyVersion:
+                  type: string
+                consentedAt:
+                  type: string
+                  format: date-time
+      responses:
+        '200':
+          description: 登录成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/LoginResponse'
+
+  /auth/session:
+    get:
+      tags: [auth]
+      summary: 恢复会话
+      operationId: restoreSession
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: 会话信息
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          user:
+                            $ref: '#/components/schemas/UserProfile'
+                          accessToken:
+                            type: string
+                          expiresAt:
+                            type: string
+                            format: date-time
+
+  /auth/logout:
+    post:
+      tags: [auth]
+      summary: 登出
+      operationId: logout
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: 登出成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+  /auth/guest/upgrade:
+    post:
+      tags: [auth]
+      summary: 游客账号升级
+      operationId: upgradeGuest
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [phone, code]
+              properties:
+                phone:
+                  type: string
+                code:
+                  type: string
+      responses:
+        '200':
+          description: 升级成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/LoginResponse'
+
+  /auth/password/recovery:
+    post:
+      tags: [auth]
+      summary: 密码找回
+      operationId: passwordRecovery
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [phone, code, newPassword, confirmPassword]
+              properties:
+                phone:
+                  type: string
+                code:
+                  type: string
+                newPassword:
+                  type: string
+                  minLength: 8
+                confirmPassword:
+                  type: string
+      responses:
+        '200':
+          description: 密码已重置
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+  # ─────────────── Profile ───────────────
+  /profile/me:
+    get:
+      tags: [profile]
+      summary: 获取个人资料
+      operationId: getMyProfile
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: 个人资料
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/UserProfile'
+    put:
+      tags: [profile]
+      summary: 更新个人资料
+      operationId: updateMyProfile
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  maxLength: 20
+                bio:
+                  type: string
+                  maxLength: 200
+                city:
+                  type: string
+                gender:
+                  type: string
+                  enum: [male, female, not_disclosed]
+                birthday:
+                  type: string
+                  format: date
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/UserProfile'
+
+  /profile/me/settings:
+    get:
+      tags: [profile]
+      summary: 获取设置
+      operationId: getMySettings
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: 设置信息
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ProfileSettings'
+    put:
+      tags: [profile]
+      summary: 更新设置
+      operationId: updateMySettings
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfileSettings'
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/ProfileSettings'
+
+  /profile/me/checkin:
+    post:
+      tags: [profile]
+      summary: 每日签到
+      operationId: checkin
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: 签到成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          streak:
+                            type: integer
+                          reward:
+                            type: integer
+
+  /profile/me/checkin-calendar:
+    get:
+      tags: [profile]
+      summary: 签到日历
+      operationId: getCheckinCalendar
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: month
+          in: query
+          schema:
+            type: string
+            pattern: '^\d{4}-\d{2}$'
+          example: '2026-06'
+      responses:
+        '200':
+          description: 签到日历
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/CheckinCalendar'
+
+  /profile/me/interactions:
+    get:
+      tags: [profile]
+      summary: 互动记录
+      operationId: getInteractions
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: 互动记录列表
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - $ref: '#/components/schemas/PaginatedList'
+
+  /profile/me/browse:
+    get:
+      tags: [profile]
+      summary: 浏览记录
+      operationId: getBrowseHistory
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: 浏览记录列表
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - $ref: '#/components/schemas/PaginatedList'
+
+  /profile/me:
+    delete:
+      tags: [profile]
+      summary: 注销账号
+      operationId: deleteAccount
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [confirmText]
+              properties:
+                confirmText:
+                  type: string
+                  description: 必须输入"注销"确认
+      responses:
+        '200':
+          description: 注销申请已提交
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          coolingOffDays:
+                            type: integer
+                            example: 7
+
+  # ─────────────── Credits ───────────────
+  /credit/account:
+    get:
+      tags: [credits]
+      summary: 获取额度账户
+      operationId: getCreditAccount
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: 额度账户信息
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/CreditAccount'
+
+  /credit/consume:
+    post:
+      tags: [credits]
+      summary: 消费额度
+      operationId: consumeCredit
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [type]
+              properties:
+                type:
+                  type: string
+                  enum: [cast, followup]
+                amount:
+                  type: integer
+                  default: 1
+                sessionId:
+                  type: string
+      responses:
+        '200':
+          description: 消费成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/CreditAccount'
+
+  /credit/reset:
+    post:
+      tags: [credits]
+      summary: 重置每日额度
+      operationId: resetCredits
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: 重置成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/CreditAccount'
+
+  # ─────────────── Billing ───────────────
+  /billing/plans:
+    get:
+      tags: [billing]
+      summary: 获取会员计划列表
+      operationId: getBillingPlans
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: 计划列表
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          plans:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/BillingPlan'
+
+  /billing/order/create:
+    post:
+      tags: [billing]
+      summary: 创建订单
+      operationId: createOrder
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [planId]
+              properties:
+                planId:
+                  type: string
+      responses:
+        '200':
+          description: 订单已创建
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Order'
+
+  /billing/order/confirm:
+    post:
+      tags: [billing]
+      summary: 确认支付
+      operationId: confirmPayment
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [orderId]
+              properties:
+                orderId:
+                  type: string
+                providerOrderId:
+                  type: string
+      responses:
+        '200':
+          description: 支付确认成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Order'
+
+  /billing/order/{orderId}:
+    get:
+      tags: [billing]
+      summary: 查询订单状态
+      operationId: getOrder
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 订单信息
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Order'
+
+  # ─────────────── Ritual ───────────────
+  /ritual/perform:
+    post:
+      tags: [ritual]
+      summary: 创建仪式会话（起卦）
+      operationId: performRitual
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RitualPerformRequest'
+      responses:
+        '200':
+          description: 仪式会话已创建
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/RitualSessionResponse'
+
+  /ritual/session/{sessionId}:
+    get:
+      tags: [ritual]
+      summary: 恢复仪式会话
+      operationId: getRitualSession
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 会话详情
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/RitualSessionResponse'
+
+  /ritual/session/{sessionId}/preview:
+    get:
+      tags: [ritual]
+      summary: 获取解读预览（首次体验）
+      operationId: getRitualPreview
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 预览内容
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/InterpretationCard'
+
+  /ritual/session/{sessionId}/full-read:
+    get:
+      tags: [ritual]
+      summary: 获取完整解读
+      operationId: getFullInterpretation
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 完整解读内容
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/InterpretationCard'
+
+  /ritual/session/{sessionId}/continue:
+    post:
+      tags: [ritual]
+      summary: 追问
+      operationId: continueRitual
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [message]
+              properties:
+                message:
+                  type: string
+                  maxLength: 500
+      responses:
+        '200':
+          description: 追问回复
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/FollowupMessage'
+
+  /ritual/session/{sessionId}/chat-history:
+    get:
+      tags: [ritual]
+      summary: 获取对话历史
+      operationId: getChatHistory
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 对话历史
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          messages:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/FollowupMessage'
+
+  /ritual/session/{sessionId}/interpretation/stream:
+    get:
+      tags: [ritual]
+      summary: SSE 流式解读
+      operationId: streamInterpretation
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: SSE 流
+          content:
+            text/event-stream:
+              schema:
+                type: string
+                description: |
+                  事件格式：
+                  - `event: chunk\ndata: {"delta":"..."}\n\n`
+                  - `event: done\ndata: {"sessionId":"..."}\n\n`
+                  - `event: error\ndata: {"code":"...","message":"..."}\n\n`
+
+  /ritual/session/{sessionId}/followup/stream:
+    get:
+      tags: [ritual]
+      summary: SSE 流式追问回复
+      operationId: streamFollowup
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: messageId
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: SSE 流
+          content:
+            text/event-stream:
+              schema:
+                type: string
+
+  /ritual/user/{userId}/completion-today:
+    get:
+      tags: [ritual]
+      summary: 获取今日完成状态
+      operationId: getCompletionToday
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 今日完成状态
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          completed:
+                            type: boolean
+                          dateKey:
+                            type: string
+
+  # ─────────────── Community ───────────────
+  /community/feed:
+    get:
+      tags: [community]
+      summary: 获取信息流
+      operationId: getFeed
+      parameters:
+        - name: tab
+          in: query
+          schema:
+            type: string
+            enum: [recommended, deep]
+            default: recommended
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: 信息流
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          items:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/FeedItem'
+                          hasMore:
+                            type: boolean
+                          nextPage:
+                            type: integer
+
+  /community/post/{id}:
+    get:
+      tags: [community]
+      summary: 获取帖子详情
+      operationId: getPostDetail
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 帖子详情
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/FeedItem'
+
+  /community/post/{id}/comments:
+    get:
+      tags: [community]
+      summary: 获取评论列表
+      operationId: getComments
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: 评论列表
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          items:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Comment'
+                          hasMore:
+                            type: boolean
+                          nextPage:
+                            type: integer
+    post:
+      tags: [community]
+      summary: 发表评论
+      operationId: createComment
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [text]
+              properties:
+                text:
+                  type: string
+                  maxLength: 500
+                parentId:
+                  type: string
+                  description: 回复的评论 ID（可选）
+      responses:
+        '200':
+          description: 评论已创建
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Comment'
+
+  /community/post:
+    post:
+      tags: [community]
+      summary: 发布帖子
+      operationId: createPost
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                cardId:
+                  type: string
+                  description: 关联解读卡 ID（可选）
+                shareText:
+                  type: string
+                  maxLength: 2000
+                coverImageUrl:
+                  type: string
+      responses:
+        '200':
+          description: 帖子已发布
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                          status:
+                            type: string
+
+  /community/post/{id}/like:
+    post:
+      tags: [community]
+      summary: 点赞
+      operationId: likePost
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 点赞成功（幂等）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+  /community/post/{id}/unlike:
+    post:
+      tags: [community]
+      summary: 取消点赞
+      operationId: unlikePost
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 取消成功（幂等）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+  /community/post/{id}/favorite:
+    post:
+      tags: [community]
+      summary: 收藏
+      operationId: favoritePost
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 收藏成功（幂等）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+  /community/post/{id}/unfavorite:
+    post:
+      tags: [community]
+      summary: 取消收藏
+      operationId: unfavoritePost
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 取消成功（幂等）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+  /community/post/{id}/report:
+    post:
+      tags: [community]
+      summary: 举报帖子
+      operationId: reportPost
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reason]
+              properties:
+                reason:
+                  type: string
+                  enum: [porn, spam, abuse, other]
+                detail:
+                  type: string
+                  maxLength: 500
+      responses:
+        '200':
+          description: 举报已提交
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+  /community/post/{id}/hide:
+    post:
+      tags: [community]
+      summary: 隐藏帖子（减少推荐）
+      operationId: hidePost
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 已隐藏
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+  /community/author/{authorId}:
+    get:
+      tags: [community]
+      summary: 获取作者主页
+      operationId: getAuthorProfile
+      parameters:
+        - name: authorId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 作者信息
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/AuthorProfile'
+
+  /community/author/{authorId}/follow:
+    post:
+      tags: [community]
+      summary: 关注作者
+      operationId: followAuthor
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: authorId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 关注成功（幂等）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+  /community/author/{authorId}/unfollow:
+    post:
+      tags: [community]
+      summary: 取消关注
+      operationId: unfollowAuthor
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: authorId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 取消成功（幂等）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+  /community/author/{authorId}/block:
+    post:
+      tags: [community]
+      summary: 屏蔽用户
+      operationId: blockUser
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: authorId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 屏蔽成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+  /community/author/{authorId}/unblock:
+    post:
+      tags: [community]
+      summary: 取消屏蔽
+      operationId: unblockUser
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: authorId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 取消成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+  /community/search:
+    get:
+      tags: [community]
+      summary: 搜索
+      operationId: search
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [all, post, user, activity]
+            default: all
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: 搜索结果
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - $ref: '#/components/schemas/PaginatedList'
+
+  /community/feed/by-tag:
+    get:
+      tags: [community]
+      summary: 按标签获取信息流
+      operationId: getFeedByTag
+      parameters:
+        - name: tag
+          in: query
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: 标签信息流
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - $ref: '#/components/schemas/PaginatedList'
+
+  /community/tags/subscribe:
+    post:
+      tags: [community]
+      summary: 订阅标签
+      operationId: subscribeTag
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [tag]
+              properties:
+                tag:
+                  type: string
+      responses:
+        '200':
+          description: 订阅成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+  # ─────────────── Notifications ───────────────
+  /notifications:
+    get:
+      tags: [notifications]
+      summary: 获取通知列表
+      operationId: getNotifications
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [all, system, interaction, activity, agent]
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: 通知列表
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          items:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Notification'
+                          hasMore:
+                            type: boolean
+                          nextPage:
+                            type: integer
+                          unreadCount:
+                            type: integer
+
+  /notifications/unread-count:
+    get:
+      tags: [notifications]
+      summary: 获取未读数
+      operationId: getUnreadCount
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: 未读数
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          count:
+                            type: integer
+
+  /notifications/read-all:
+    post:
+      tags: [notifications]
+      summary: 全部标为已读
+      operationId: markAllRead
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: 操作成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+  /notifications/{id}/read:
+    post:
+      tags: [notifications]
+      summary: 标记单条已读
+      operationId: markRead
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 操作成功（幂等）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+  /notifications/{id}/dismiss:
+    post:
+      tags: [notifications]
+      summary: 删除通知
+      operationId: dismissNotification
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 操作成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+  /notifications/token:
+    post:
+      tags: [notifications]
+      summary: 注册推送 Token
+      operationId: registerPushToken
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token, platform]
+              properties:
+                token:
+                  type: string
+                platform:
+                  type: string
+                  enum: [android, ios, web]
+      responses:
+        '200':
+          description: 注册成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+    delete:
+      tags: [notifications]
+      summary: 注销推送 Token
+      operationId: unregisterPushToken
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+      responses:
+        '200':
+          description: 注销成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+  /notifications/state:
+    put:
+      tags: [notifications]
+      summary: 批量同步已读/删除状态
+      operationId: syncNotificationState
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                readIds:
+                  type: array
+                  items:
+                    type: string
+                dismissedIds:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: 同步成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+  # ─────────────── Match ───────────────
+  /match/unlock:
+    post:
+      tags: [match]
+      summary: 解锁同频功能
+      operationId: unlockMatch
+      parameters:
+        - $ref: '#/components/parameters/DeviceId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                deviceId:
+                  type: string
+                trigger:
+                  type: string
+                  enum: [shake]
+                  default: shake
+      responses:
+        '200':
+          description: 解锁状态
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          unlocked:
+                            type: boolean
+                          unlockToken:
+                            type: string
+
+  /match/same-frequency:
+    get:
+      tags: [match]
+      summary: 获取同频内容
+      operationId: getSameFrequency
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: tab
+          in: query
+          schema:
+            type: string
+            enum: [users, history]
+            default: users
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: 同频内容
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          tab:
+                            type: string
+                          signature:
+                            type: string
+                          items:
+                            type: array
+                            items:
+                              type: object
+                          hasMore:
+                            type: boolean
+                          nextPage:
+                            type: integer
+
+  /match/radar/status:
+    get:
+      tags: [match]
+      summary: 获取雷达状态
+      operationId: getRadarStatus
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: 雷达状态
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          unlocked:
+                            type: boolean
+                          signature:
+                            type: string
+                          unlockedAt:
+                            type: string
+                            format: date-time
+
+  # ─────────────── Activities ───────────────
+  /activities/list:
+    get:
+      tags: [activities]
+      summary: 获取活动列表
+      operationId: getActivities
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: 活动列表
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          items:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Activity'
+                          hasMore:
+                            type: boolean
+                          nextPage:
+                            type: integer
+
+  /activities/{id}:
+    get:
+      tags: [activities]
+      summary: 获取活动详情
+      operationId: getActivityDetail
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 活动详情
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/Activity'
+
+  /activities/{id}/join:
+    post:
+      tags: [activities]
+      summary: 报名活动
+      operationId: joinActivity
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 报名成功（幂等）
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          status:
+                            type: string
+                            enum: [pending, approved, waitlist]
+
+  /activities/{id}/join-status:
+    get:
+      tags: [activities]
+      summary: 获取报名状态
+      operationId: getJoinStatus
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 报名状态
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          status:
+                            type: string
+                            enum: [none, pending, approved, waitlist, rejected]
+
+  # ─────────────── Share ───────────────
+  /share/card/render:
+    post:
+      tags: [share]
+      summary: 渲染分享卡图片
+      operationId: renderShareCard
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [cardId]
+              properties:
+                cardId:
+                  type: string
+                theme:
+                  type: string
+                  enum: [warm, cool, dark]
+                  default: warm
+                text:
+                  type: string
+                backgroundImageUrl:
+                  type: string
+      responses:
+        '200':
+          description: 渲染结果
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          imageUrl:
+                            type: string
+
+  /share/card/save:
+    post:
+      tags: [share]
+      summary: 保存分享卡草稿
+      operationId: saveShareCard
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [cardId]
+              properties:
+                cardId:
+                  type: string
+                theme:
+                  type: string
+                  enum: [warm, cool, dark]
+                text:
+                  type: string
+                backgroundImageUrl:
+                  type: string
+      responses:
+        '200':
+          description: 草稿已保存
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+  /share/community/publish:
+    post:
+      tags: [share]
+      summary: 发布分享卡到社区
+      operationId: publishShareCard
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [cardId]
+              properties:
+                cardId:
+                  type: string
+                shareText:
+                  type: string
+      responses:
+        '200':
+          description: 已发布
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          postId:
+                            type: string
+
+  /share/external:
+    post:
+      tags: [share]
+      summary: 生成外部分享载荷
+      operationId: externalShare
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [cardId]
+              properties:
+                cardId:
+                  type: string
+                platform:
+                  type: string
+                  enum: [wechat, moments, generic]
+                  default: generic
+      responses:
+        '200':
+          description: 分享载荷
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          title:
+                            type: string
+                          summary:
+                            type: string
+                          link:
+                            type: string
+                          imageUrl:
+                            type: string
+
+  # ─────────────── Support ───────────────
+  /support/feedback:
+    post:
+      tags: [support]
+      summary: 提交反馈
+      operationId: submitFeedback
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [category, content]
+              properties:
+                category:
+                  type: string
+                  enum: [bug, suggestion, abuse, other]
+                content:
+                  type: string
+                  maxLength: 2000
+                contact:
+                  type: string
+                client:
+                  type: object
+                  properties:
+                    platform:
+                      type: string
+                      enum: [android, ios]
+                    version:
+                      type: string
+      responses:
+        '200':
+          description: 反馈已提交
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          ticketId:
+                            type: string
+
+  # ─────────────── Media ───────────────
+  /media/upload:
+    post:
+      tags: [media]
+      summary: 上传媒体文件
+      operationId: uploadMedia
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                purpose:
+                  type: string
+                  enum: [avatar, cover, post, share]
+                  default: post
+      responses:
+        '200':
+          description: 上传成功
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          url:
+                            type: string
+                          width:
+                            type: integer
+                          height:
+                            type: integer
+                          mime:
+                            type: string
+                          size:
+                            type: integer
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    Page:
+      name: page
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        default: 1
+    PageSize:
+      name: pageSize
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 50
+        default: 20
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      schema:
+        type: string
+        format: uuid
+    DeviceId:
+      name: X-Device-Id
+      in: header
+      schema:
+        type: string
+
+  schemas:
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+
+    FailResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+        requestId:
+          type: string
+
+    HealthResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            status:
+              type: string
+              example: ok
+            db:
+              type: string
+              example: connected
+            time:
+              type: string
+              format: date-time
+
+    UserProfile:
+      type: object
+      properties:
+        id:
+          type: string
+        username:
+          type: string
+        bio:
+          type: string
+        avatarUrl:
+          type: string
+        coverUrl:
+          type: string
+        shortId:
+          type: string
+        city:
+          type: string
+        gender:
+          type: string
+          enum: [male, female, not_disclosed]
+        birthday:
+          type: string
+          format: date
+        createdAt:
+          type: string
+          format: date-time
+
+    ProfileSettings:
+      type: object
+      properties:
+        pushEnabled:
+          type: boolean
+        vibrationEnabled:
+          type: boolean
+        ambientSoundEnabled:
+          type: boolean
+        publicProfile:
+          type: boolean
+
+    LoginResponse:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/UserProfile'
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+        expiresAt:
+          type: string
+          format: date-time
+        refreshExpiresAt:
+          type: string
+          format: date-time
+
+    CreditAccount:
+      type: object
+      properties:
+        userId:
+          type: string
+        castBalance:
+          type: integer
+        followupBalance:
+          type: integer
+        isVip:
+          type: boolean
+        vipExpiresAt:
+          type: string
+          format: date-time
+        lastResetDate:
+          type: string
+          format: date
+        lastCheckinDate:
+          type: string
+          format: date
+
+    BillingPlan:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        days:
+          type: integer
+        priceCents:
+          type: integer
+        currency:
+          type: string
+
+    Order:
+      type: object
+      properties:
+        orderId:
+          type: string
+        planId:
+          type: string
+        status:
+          type: string
+          enum: [created, paying, paid, failed, refunded]
+        amount:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+
+    RitualPerformRequest:
+      type: object
+      required: [question, tag, lines, movingLines]
+      properties:
+        question:
+          type: string
+          maxLength: 500
+        tag:
+          type: string
+          enum: [relationship, career, emotion, choice, other]
+        lines:
+          type: array
+          items:
+            type: integer
+            enum: [0, 1]
+          minItems: 6
+          maxItems: 6
+        movingLines:
+          type: array
+          items:
+            type: integer
+            minimum: 0
+            maximum: 5
+
+    RitualSessionResponse:
+      type: object
+      properties:
+        sessionId:
+          type: string
+        question:
+          type: string
+        tag:
+          type: string
+        pattern:
+          type: object
+          properties:
+            lines:
+              type: array
+              items:
+                type: integer
+            movingLines:
+              type: array
+              items:
+                type: integer
+        status:
+          type: string
+        card:
+          $ref: '#/components/schemas/InterpretationCard'
+        createdAt:
+          type: string
+          format: date-time
+
+    InterpretationCard:
+      type: object
+      properties:
+        summary:
+          type: string
+        body:
+          type: string
+        followupDirections:
+          type: array
+          items:
+            type: string
+        needsClarification:
+          type: boolean
+        microActions:
+          type: array
+          items:
+            type: string
+        focusPoints:
+          type: array
+          items:
+            type: string
+        afterglow:
+          type: string
+
+    FollowupMessage:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [question, answer]
+        content:
+          type: string
+        suggestedDirections:
+          type: array
+          items:
+            type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    FeedItem:
+      type: object
+      properties:
+        id:
+          type: string
+        cardId:
+          type: string
+          nullable: true
+        shareText:
+          type: string
+        coverImageUrl:
+          type: string
+          nullable: true
+        authorId:
+          type: string
+        authorUsername:
+          type: string
+        authorHandle:
+          type: string
+          nullable: true
+        authorAvatarUrl:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        status:
+          type: string
+        metrics:
+          type: object
+          properties:
+            likes:
+              type: integer
+            favorites:
+              type: integer
+            views:
+              type: integer
+            comments:
+              type: integer
+        viewerState:
+          type: object
+          properties:
+            liked:
+              type: boolean
+            favorited:
+              type: boolean
+            followedAuthor:
+              type: boolean
+
+    Comment:
+      type: object
+      properties:
+        id:
+          type: string
+        postId:
+          type: string
+        authorId:
+          type: string
+        authorUsername:
+          type: string
+        authorAvatarUrl:
+          type: string
+        parentId:
+          type: string
+          nullable: true
+        text:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    AuthorProfile:
+      type: object
+      properties:
+        id:
+          type: string
+        username:
+          type: string
+        bio:
+          type: string
+        avatarUrl:
+          type: string
+        handle:
+          type: string
+        postCount:
+          type: integer
+        followerCount:
+          type: integer
+        followingCount:
+          type: integer
+        viewerState:
+          type: object
+          properties:
+            followed:
+              type: boolean
+            blocked:
+              type: boolean
+
+    Notification:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [system, interaction, activity, agent]
+        title:
+          type: string
+        body:
+          type: string
+        data:
+          type: object
+          properties:
+            targetId:
+              type: string
+            targetType:
+              type: string
+        createdAt:
+          type: string
+          format: date-time
+        read:
+          type: boolean
+
+    Activity:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        imageUrl:
+          type: string
+        status:
+          type: string
+          enum: [registering, ongoing, ended]
+        startAt:
+          type: string
+          format: date-time
+        endAt:
+          type: string
+          format: date-time
+        capacity:
+          type: integer
+        participantCount:
+          type: integer
+        joinStatus:
+          type: string
+          enum: [none, pending, approved, waitlist, rejected]
+
+    CheckinCalendar:
+      type: object
+      properties:
+        month:
+          type: string
+          example: '2026-06'
+        checkedDays:
+          type: array
+          items:
+            type: integer
+        streak:
+          type: integer
+        hasCheckedInToday:
+          type: boolean
+
+    PaginatedList:
+      type: object
+      properties:
+        data:
+          type: object
+          properties:
+            items:
+              type: array
+              items:
+                type: object
+            hasMore:
+              type: boolean
+            nextPage:
+              type: integer

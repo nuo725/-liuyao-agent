@@ -1,0 +1,50 @@
+{
+  "examples": [
+    {
+      "id": "FS_INITIAL_01",
+      "turnType": "initial",
+      "input": {
+        "question": "EN，EN，EN。",
+        "ritualResults": [0, 0, 1, 1, 0, 1]
+      },
+      "output": {
+        "originalHexagram": "EN34EN EN",
+        "movingLines": [3, 5],
+        "changedHexagram": "EN58EN EN",
+        "analysis": "EN，EN，EN；EN，EN。",
+        "quoteText": "EN，EN。",
+        "quoteSource": "《EN》",
+        "quoteRelevance": "EN，EN，EN：EN，EN。",
+        "answer": "EN，EN，EN“EN”EN。EN，EN，EN，EN。\n\nEN，EN34EN，EN3、5EN，EN，EN。EN58EN，EN：EN，EN“EN”EN“EN”。\n\nEN“EN，EN”，EN。EN：EN，EN；EN，EN。\n\nEN，EN，EN。EN“EN”EN“EN”，EN。",
+        "followups": [
+          "EN，EN？",
+          "EN，EN，EN？",
+          "EN，EN？"
+        ]
+      }
+    },
+    {
+      "id": "FS_FOLLOWUP_01",
+      "turnType": "followup",
+      "input": {
+        "question": "EN，EN。",
+        "ritualResults": [0, 0, 1, 1, 0, 1]
+      },
+      "output": {
+        "originalHexagram": "EN34EN EN",
+        "movingLines": [3, 5],
+        "changedHexagram": "EN58EN EN",
+        "analysis": "EN“EN”EN“EN”：EN，EN。",
+        "quoteText": "",
+        "quoteSource": "",
+        "quoteRelevance": "",
+        "answer": "EN“EN”，EN。EN，EN，EN，EN。\n\nEN，EN，EN。EN，EN“EN”EN“EN”。\n\nEN，EN：EN，EN，EN。EN，EN。",
+        "followups": [
+          "EN“EN”EN？",
+          "EN，EN？",
+          "EN“EN”，EN？"
+        ]
+      }
+    }
+  ]
+}
