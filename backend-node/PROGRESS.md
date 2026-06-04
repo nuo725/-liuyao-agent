@@ -21,9 +21,9 @@
 | M2：仪式数据链路 | 第 3 周 | ✅ 已完成 | 9/9 |
 | M3：社区生产链路 | 第 4~5 周 | ✅ 已完成 | 12/12 |
 | M4：现有 UI 业务能力接入 | 第 6~7 周 | ✅ 已完成 | 20/20 |
-| M5：上线准备 | 第 8 周 | 🟡 进行中 | 3/8 |
+| M5：上线准备 | 第 8 周 | 🟡 进行中 | 5/8 |
 
-**整体进度：80/92 个任务完成（87%）**
+**整体进度：82/92 个任务完成（89%）**
 
 ---
 
@@ -201,13 +201,13 @@
 | OPS-001 | 数据迁移与种子数据 | ✅ 已完成 | `prisma/seed.js` | 种子脚本已创建 |
 | OPS-002 | 自动化备份与恢复演练 | ✅ 已完成 | `scripts/db-backup.js` + `scripts/db-restore.js` + `docs/ops-runbook.md` | 支持 dry-run、备份 manifest、恢复演练命令；真实恢复需 PostgreSQL 环境 |
 | OPS-003 | 安全检查 | ✅ 已完成 | `scripts/security-check.js` + `npm run ops:security-check` | 检查 PostgreSQL URL、JWT Secret、生产默认项、Git ignore 和 lockfile |
-| OPS-004 | 性能压测 | 🔲 未开始 | — | — |
+| OPS-004 | 性能压测 | ✅ 已完成 | `scripts/perf-smoke.js` + `npm run ops:perf-smoke` | 支持并发请求、p50/p95、错误率和阈值失败退出 |
 | OPS-005 | 灰度开关与回滚 | 🔲 未开始 | — | — |
-| OPS-006 | 生产监控与告警 | 🔲 未开始 | — | — |
+| OPS-006 | 生产监控与告警 | ✅ 已完成 | `/api/v1/ready` + `/api/v1/metrics` + `scripts/alert-check.js` | 记录请求数、状态码、错误率、耗时，并支持 webhook 告警检查 |
 | OPS-007 | 隐私与数据删除验收 | 🔲 未开始 | — | — |
 | OPS-008 | 前后端契约回归 | 🔲 未开始 | — | — |
 
-**Phase 8 进度：3/8**
+**Phase 8 进度：5/8**
 
 ---
 
@@ -243,7 +243,7 @@ backend-node/
 ├── package.json                                # 依赖与脚本（含 worker、backup、restore、安全检查）
 ├── eslint.config.js                            # ESLint 9 配置
 ├── docs/
-│   └── ops-runbook.md                          # 备份、恢复、安全检查和 Git 版本管理步骤
+│   └── ops-runbook.md                          # 备份、恢复、安全检查、压测、监控和 Git 版本管理步骤
 ├── openapi/
 │   └── openapi.yaml                            # OpenAPI 3.1 契约（全模块）
 ├── prisma/
@@ -252,7 +252,9 @@ backend-node/
 ├── scripts/
 │   ├── db-backup.js                            # PostgreSQL 备份脚本
 │   ├── db-restore.js                           # PostgreSQL 恢复演练脚本
-│   └── security-check.js                       # 本地安全检查脚本
+│   ├── security-check.js                       # 本地安全检查脚本
+│   ├── perf-smoke.js                           # 性能 smoke test 脚本
+│   └── alert-check.js                          # 监控告警检查脚本
 ├── test/
 │   ├── helpers/
 │   │   ├── setup.js                            # 测试辅助函数
@@ -262,7 +264,9 @@ backend-node/
 │       ├── error-format.test.js                # 错误格式测试
 │       ├── community-moderation.test.js        # 社区审核规则测试
 │       ├── analytics.test.js                   # Analytics 周指标辅助函数测试
-│       └── security-check.test.js              # 运维安全检查脚本测试
+│       ├── security-check.test.js              # 运维安全检查脚本测试
+│       ├── perf-smoke.test.js                  # 性能统计脚本测试
+│       └── monitoring.test.js                  # 运行指标与告警规则测试
 ├── src/
 │   ├── app.js                                  # Express app 工厂
 │   ├── server.js                               # 服务器启动入口
@@ -322,7 +326,7 @@ backend-node/
 
 ### 优先级 P1（补齐 UI 后端能力）
 4. **补业务集成测试** → 覆盖审核、活动、账单、公开主页、通知、分享和 Analytics
-5. **OPS-004 ~ OPS-008** → 性能压测、灰度回滚、监控告警、隐私删除验收、前后端契约回归
+5. **OPS-005、OPS-007、OPS-008** → 灰度回滚、隐私删除验收、前后端契约回归
 
 ### 优先级 P2（长期价值）
 6. **Phase 9** → 匿名身份、反馈帖、推荐深化
@@ -333,6 +337,7 @@ backend-node/
 
 | 日期 | 内容 |
 |------|------|
+| 2026-06-04 | 本轮追加：补 OPS-004 性能压测脚本、OPS-006 ready/metrics 监控端点与告警检查脚本；同步 OpenAPI、Runbook 和测试；更新进度至 82/92 |
 | 2026-06-04 | 本轮追加：在文档最前面补 Git 版本管理要求；补 OPS-002 备份/恢复演练脚本与 Runbook、OPS-003 本地安全检查脚本和测试；更新进度至 80/92 |
 | 2026-06-04 | 本轮追加：补 SHARE-002 服务端 SVG 分享图、NOTIFY-006 系统通知运营入口、RITUAL-009 情绪校准与周期回顾；同步 OpenAPI；更新进度至 78/92 |
 | 2026-06-04 | 本轮追加：删除临时快照；补审核后台、公开主页、活动管理和 Analytics 指标；更新进度至 75/92 |

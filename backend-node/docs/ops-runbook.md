@@ -54,3 +54,32 @@ npm run ops:security-check
 ```
 
 The check validates PostgreSQL connection string shape, JWT secret strength, unsafe production defaults, package lock presence, and Git ignore coverage for `.env`, uploads, and backups.
+
+## Performance smoke test
+
+Run a light local smoke test against the health endpoint:
+
+```powershell
+npm run ops:perf-smoke -- --url=http://127.0.0.1:3000/api/v1/health --requests=100 --concurrency=10
+```
+
+The command prints total requests, failures, status code distribution, average latency, p50, p95, and threshold status. Tune thresholds per environment:
+
+```powershell
+npm run ops:perf-smoke -- --url=https://api.example.com/api/v1/health --requests=500 --concurrency=25 --maxP95Ms=800 --maxErrorRate=0.01
+```
+
+## Monitoring and alerts
+
+The backend exposes:
+
+- `GET /api/v1/ready` for dependency readiness.
+- `GET /api/v1/metrics` for in-process request counts, status codes, error rate, and latency.
+
+Run a local alert check:
+
+```powershell
+npm run ops:alert-check -- --baseUrl=http://127.0.0.1:3000 --dry-run
+```
+
+Production can set `MONITOR_BASE_URL`, `ALERT_WEBHOOK_URL`, `ALERT_MAX_ERROR_RATE`, and `ALERT_MAX_AVG_DURATION_MS`. When a webhook URL is configured and `--dry-run` is omitted, alert payloads are posted as JSON.

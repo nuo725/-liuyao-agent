@@ -88,6 +88,56 @@ paths:
               schema:
                 $ref: '#/components/schemas/HealthResponse'
 
+  /ready:
+    get:
+      tags: [health]
+      summary: 就绪检查
+      operationId: getReadiness
+      responses:
+        '200':
+          description: 服务就绪
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '503':
+          description: 依赖未就绪
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+  /metrics:
+    get:
+      tags: [health]
+      summary: 获取运行指标快照
+      operationId: getRuntimeMetrics
+      responses:
+        '200':
+          description: 指标快照
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          requests:
+                            type: integer
+                          errors:
+                            type: integer
+                          errorRate:
+                            type: number
+                          avgDurationMs:
+                            type: number
+                          routes:
+                            type: array
+                            items:
+                              type: object
+
   # ─────────────── Auth ───────────────
   /auth/phone/send-code:
     post:

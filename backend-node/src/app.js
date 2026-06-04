@@ -7,6 +7,7 @@ const path = require('path');
 const { requestIdMiddleware } = require('./middleware/request-id');
 const { errorHandler } = require('./middleware/error-handler');
 const { ok, fail } = require('./shared/response');
+const { metricsMiddleware, readinessCheck, snapshotMetrics } = require('./shared/monitoring');
 
 // Module routes
 const authRoutes = require('./modules/auth/route');
@@ -30,6 +31,7 @@ function createApp() {
   app.use(cors());
   app.use(express.json({ limit: '1mb' }));
   app.use(requestIdMiddleware);
+  app.use(metricsMiddleware);
   app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
   // Health check
@@ -42,6 +44,15 @@ function createApp() {
     } catch {
       res.status(503).json(ok({ status: 'degraded', db: 'disconnected', time: new Date().toISOString() }));
     }
+  });
+
+  app.get('/api/v1/ready', async (req, res) => {
+    const result = await readinessCheck();
+    res.status(result.ready ? 200 : 503).json(ok(result));
+  });
+
+  app.get('/api/v1/metrics', (req, res) => {
+    res.json(ok(snapshotMetrics()));
   });
 
   // Module routes
