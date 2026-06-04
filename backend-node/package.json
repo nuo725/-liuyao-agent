@@ -21,6 +21,8 @@
     "ops:security-check": "node scripts/security-check.js",
     "ops:perf-smoke": "node scripts/perf-smoke.js",
     "ops:alert-check": "node scripts/alert-check.js",
+    "ops:data-export": "node scripts/data-deletion.js --action=export",
+    "ops:data-delete": "node scripts/data-deletion.js --action=delete --confirm",
     "worker:outbox": "node src/workers/outbox.js"
   },
   "engines": {

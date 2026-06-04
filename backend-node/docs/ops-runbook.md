@@ -83,3 +83,54 @@ npm run ops:alert-check -- --baseUrl=http://127.0.0.1:3000 --dry-run
 ```
 
 Production can set `MONITOR_BASE_URL`, `ALERT_WEBHOOK_URL`, `ALERT_MAX_ERROR_RATE`, and `ALERT_MAX_AVG_DURATION_MS`. When a webhook URL is configured and `--dry-run` is omitted, alert payloads are posted as JSON.
+
+## Feature flags & rollback
+
+### Available feature flags
+
+| Flag | Env Variable | Description |
+|------|-------------|-------------|
+| `community_publish_enabled` | `FEATURE_COMMUNITY_PUBLISH_ENABLED` | 社区发布功能 |
+| `community_comment_enabled` | `FEATURE_COMMUNITY_COMMENT_ENABLED` | 社区评论功能 |
+| `match_enabled` | `FEATURE_MATCH_ENABLED` | 同频匹配功能 |
+| `activity_join_enabled` | `FEATURE_ACTIVITY_JOIN_ENABLED` | 活动报名功能 |
+| `billing_enabled` | `FEATURE_BILLING_ENABLED` | 会员与订单功能 |
+| `ritual_enabled` | `FEATURE_RITUAL_ENABLED` | 仪式会话功能 |
+| `notification_push_enabled` | `FEATURE_NOTIFICATION_PUSH_ENABLED` | 推送通知功能 |
+| `social_login_enabled` | `FEATURE_SOCIAL_LOGIN_ENABLED` | 社交登录 |
+| `media_upload_enabled` | `FEATURE_MEDIA_UPLOAD_ENABLED` | 媒体上传功能 |
+| `share_card_enabled` | `FEATURE_SHARE_CARD_ENABLED` | 分享卡功能 |
+
+### Emergency rollback via environment variables
+
+Set any flag to `false` via environment variable to disable a feature immediately:
+
+```bash
+# Disable community publishing (emergency)
+FEATURE_COMMUNITY_PUBLISH_ENABLED=false
+
+# Disable billing (payment issue)
+FEATURE_BILLING_ENABLED=false
+```
+
+Restart the service for env changes to take effect.
+
+### Runtime toggle via admin API
+
+```bash
+# List all flags
+curl -H "Authorization: Bearer <admin-token>" http://localhost:3000/api/v1/admin/feature-flags
+
+# Disable a flag
+curl -X PUT -H "Authorization: Bearer <admin-token>" \
+  -H "Content-Type: application/json" \
+  -d '{"enabled": false}' \
+  http://localhost:3000/api/v1/admin/feature-flags/community_publish_enabled
+```
+
+### Rollback principles
+
+- 社区审核故障时关闭发布，不关闭只读 Feed。
+- 支付故障时关闭新订单，不修改已有订单状态。
+- 数据库迁移必须支持向前修复或回滚脚本。
+- 回滚后记录原因和时间，便于事后复盘。

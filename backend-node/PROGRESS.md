@@ -21,9 +21,9 @@
 | M2：仪式数据链路 | 第 3 周 | ✅ 已完成 | 9/9 |
 | M3：社区生产链路 | 第 4~5 周 | ✅ 已完成 | 12/12 |
 | M4：现有 UI 业务能力接入 | 第 6~7 周 | ✅ 已完成 | 20/20 |
-| M5：上线准备 | 第 8 周 | 🟡 进行中 | 5/8 |
+| M5：上线准备 | 第 8 周 | ✅ 已完成 | 8/8 |
 
-**整体进度：82/92 个任务完成（89%）**
+**整体进度：85/92 个任务完成（92%）**
 
 ---
 
@@ -202,12 +202,12 @@
 | OPS-002 | 自动化备份与恢复演练 | ✅ 已完成 | `scripts/db-backup.js` + `scripts/db-restore.js` + `docs/ops-runbook.md` | 支持 dry-run、备份 manifest、恢复演练命令；真实恢复需 PostgreSQL 环境 |
 | OPS-003 | 安全检查 | ✅ 已完成 | `scripts/security-check.js` + `npm run ops:security-check` | 检查 PostgreSQL URL、JWT Secret、生产默认项、Git ignore 和 lockfile |
 | OPS-004 | 性能压测 | ✅ 已完成 | `scripts/perf-smoke.js` + `npm run ops:perf-smoke` | 支持并发请求、p50/p95、错误率和阈值失败退出 |
-| OPS-005 | 灰度开关与回滚 | 🔲 未开始 | — | — |
+| OPS-005 | 灰度开关与回滚 | ✅ 已完成 | `src/shared/feature-flags.js` + `src/modules/admin/route.js` + `docs/ops-runbook.md` 回滚章节 | 10 个 feature flag，支持环境变量和 API 运行时切换 |
 | OPS-006 | 生产监控与告警 | ✅ 已完成 | `/api/v1/ready` + `/api/v1/metrics` + `scripts/alert-check.js` | 记录请求数、状态码、错误率、耗时，并支持 webhook 告警检查 |
-| OPS-007 | 隐私与数据删除验收 | 🔲 未开始 | — | — |
-| OPS-008 | 前后端契约回归 | 🔲 未开始 | — | — |
+| OPS-007 | 隐私与数据删除验收 | ✅ 已完成 | `scripts/data-deletion.js` + `npm run ops:data-export` / `ops:data-delete` | 支持用户数据导出和删除，覆盖全部 23 个数据表 |
+| OPS-008 | 前后端契约回归 | ✅ 已完成 | `test/contract/flutter-contract.test.js` | 覆盖 Auth→Profile→Credits→Ritual→Community→Notification 主链路 |
 
-**Phase 8 进度：5/8**
+**Phase 8 进度：8/8**
 
 ---
 
@@ -338,6 +338,7 @@ backend-node/
 | 日期 | 内容 |
 |------|------|
 | 2026-06-04 | 本轮追加：补 OPS-004 性能压测脚本、OPS-006 ready/metrics 监控端点与告警检查脚本；同步 OpenAPI、Runbook 和测试；更新进度至 82/92 |
+| 2026-06-04 | 本轮完成：OPS-005 灰度开关（10 个 feature flag + admin API + 回滚手册）、OPS-007 隐私删除（数据导出/删除脚本）、OPS-008 契约回归测试（Flutter 主链路覆盖）；更新进度至 85/92 |
 | 2026-06-04 | 本轮追加：在文档最前面补 Git 版本管理要求；补 OPS-002 备份/恢复演练脚本与 Runbook、OPS-003 本地安全检查脚本和测试；更新进度至 80/92 |
 | 2026-06-04 | 本轮追加：补 SHARE-002 服务端 SVG 分享图、NOTIFY-006 系统通知运营入口、RITUAL-009 情绪校准与周期回顾；同步 OpenAPI；更新进度至 78/92 |
 | 2026-06-04 | 本轮追加：删除临时快照；补审核后台、公开主页、活动管理和 Analytics 指标；更新进度至 75/92 |

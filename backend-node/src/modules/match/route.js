@@ -6,13 +6,14 @@ const { ok } = require('../../shared/response');
 const { validate } = require('../../middleware/validate');
 const { requireAuth } = require('../../middleware/auth');
 const { idempotency } = require('../../middleware/idempotency');
+const { requireFeature } = require('../../shared/feature-flags');
 const matchService = require('./service');
 const schemas = require('./schema');
 
 const router = Router();
 
 // POST /unlock - Unlock same-frequency feature
-router.post('/unlock', requireAuth, idempotency, validate(schemas.unlockSchema), async (req, res, next) => {
+router.post('/unlock', requireFeature('match_enabled'), requireAuth, idempotency, validate(schemas.unlockSchema), async (req, res, next) => {
   try {
     const result = await matchService.unlock(req.userId, req.validated.body.deviceId);
     res.json(ok(result));

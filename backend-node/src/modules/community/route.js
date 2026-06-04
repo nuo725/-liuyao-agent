@@ -6,6 +6,7 @@ const { ok } = require('../../shared/response');
 const { validate } = require('../../middleware/validate');
 const { requireAuth, optionalAuth, requireRole } = require('../../middleware/auth');
 const { idempotency } = require('../../middleware/idempotency');
+const { requireFeature } = require('../../shared/feature-flags');
 const communityService = require('./service');
 const schemas = require('./schema');
 
@@ -77,7 +78,7 @@ router.get('/post/:id/comments', validate(schemas.paginationSchema, 'query'), as
 });
 
 // POST /post/:id/comments - Add comment
-router.post('/post/:id/comments', requireAuth, idempotency, validate(schemas.createCommentSchema), async (req, res, next) => {
+router.post('/post/:id/comments', requireFeature('community_comment_enabled'), requireAuth, idempotency, validate(schemas.createCommentSchema), async (req, res, next) => {
   try {
     const { text, parentId } = req.validated.body;
     const result = await communityService.createComment(req.params.id, req.userId, text, parentId);
@@ -88,7 +89,7 @@ router.post('/post/:id/comments', requireAuth, idempotency, validate(schemas.cre
 });
 
 // POST /post - Publish a post
-router.post('/post', requireAuth, idempotency, validate(schemas.createPostSchema), async (req, res, next) => {
+router.post('/post', requireFeature('community_publish_enabled'), requireAuth, idempotency, validate(schemas.createPostSchema), async (req, res, next) => {
   try {
     const result = await communityService.createPost(req.userId, req.validated.body);
     res.json(ok(result));

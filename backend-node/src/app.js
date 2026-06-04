@@ -23,6 +23,7 @@ const shareRoutes = require('./modules/share/route');
 const supportRoutes = require('./modules/support/route');
 const mediaRoutes = require('./modules/media/route');
 const analyticsRoutes = require('./modules/analytics/route');
+const adminRoutes = require('./modules/admin/route');
 
 function createApp() {
   const app = express();
@@ -69,6 +70,7 @@ function createApp() {
   app.use('/api/v1/support', supportRoutes);
   app.use('/api/v1/media', mediaRoutes);
   app.use('/api/v1/analytics', analyticsRoutes);
+  app.use('/api/v1/admin', adminRoutes);
 
   // 404 fallback
   app.use((req, res) => {

@@ -6,12 +6,14 @@ const { ok } = require('../../shared/response');
 const { validate } = require('../../middleware/validate');
 const { requireAuth } = require('../../middleware/auth');
 const { idempotency } = require('../../middleware/idempotency');
+const { requireFeature } = require('../../shared/feature-flags');
 const billingService = require('./service');
 const schemas = require('./schema');
 
 const router = Router();
 
 router.use(requireAuth);
+router.use(requireFeature('billing_enabled'));
 
 // GET /plans - List available VIP plans
 router.get('/plans', async (req, res, next) => {

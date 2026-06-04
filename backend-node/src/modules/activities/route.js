@@ -6,6 +6,7 @@ const { ok } = require('../../shared/response');
 const { validate } = require('../../middleware/validate');
 const { requireAuth, optionalAuth, requireRole } = require('../../middleware/auth');
 const { idempotency } = require('../../middleware/idempotency');
+const { requireFeature } = require('../../shared/feature-flags');
 const activityService = require('./service');
 const schemas = require('./schema');
 
@@ -53,7 +54,7 @@ router.get('/:id', optionalAuth, async (req, res, next) => {
 });
 
 // POST /:id/join - Join activity
-router.post('/:id/join', requireAuth, idempotency, async (req, res, next) => {
+router.post('/:id/join', requireFeature('activity_join_enabled'), requireAuth, idempotency, async (req, res, next) => {
   try {
     const result = await activityService.joinActivity(req.params.id, req.userId);
     res.json(ok(result));
