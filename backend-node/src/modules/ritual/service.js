@@ -314,6 +314,113 @@ async function storeAnswer(sessionId, content) {
   return message;
 }
 
+async function saveEmotionCalibration(sessionId, userId, data) {
+  const prisma = getPrisma();
+  const session = await prisma.ritualSession.findUnique({
+    where: { id: sessionId },
+    select: { id: true, userId: true },
+  });
+
+  if (!session) {
+    throw ApiError.notFound('Session not found');
+  }
+  if (session.userId !== userId) {
+    throw ApiError.forbidden('Not your session');
+  }
+
+  const calibration = await prisma.emotionCalibration.create({
+    data: {
+      userId,
+      sessionId,
+      feedback: data.feedback || null,
+      customText: data.customText || null,
+    },
+  });
+
+  return {
+    id: calibration.id,
+    sessionId: calibration.sessionId,
+    feedback: calibration.feedback,
+    customText: calibration.customText,
+    createdAt: calibration.createdAt,
+  };
+}
+
+async function getPeriodicReview(userId, days = 30) {
+  const prisma = getPrisma();
+  const to = new Date();
+  const from = new Date(to);
+  from.setDate(from.getDate() - days);
+
+  const [sessions, calibrations] = await Promise.all([
+    prisma.ritualSession.findMany({
+      where: {
+        userId,
+        createdAt: { gte: from, lte: to },
+      },
+      include: { interpretationCard: true },
+      orderBy: { createdAt: 'desc' },
+    }),
+    prisma.emotionCalibration.findMany({
+      where: {
+        userId,
+        createdAt: { gte: from, lte: to },
+      },
+      orderBy: { createdAt: 'desc' },
+    }),
+  ]);
+
+  const tagDistribution = countBy(sessions, (session) => session.tag);
+  const statusDistribution = countBy(sessions, (session) => session.status);
+  const riskDistribution = countBy(sessions, (session) => session.riskLevel);
+  const feedbackDistribution = countBy(calibrations, (calibration) => calibration.feedback || 'custom_only');
+  const focusPointCounts = new Map();
+
+  for (const session of sessions) {
+    const points = session.interpretationCard?.privateContent?.focusPoints
+      || session.interpretationCard?.communitySafeContent?.focusPoints
+      || [];
+    if (!Array.isArray(points)) continue;
+    for (const point of points) {
+      const key = String(point).trim();
+      if (key) {
+        focusPointCounts.set(key, (focusPointCounts.get(key) || 0) + 1);
+      }
+    }
+  }
+
+  const recurringThemes = [...focusPointCounts.entries()]
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .map(([text, count]) => ({ text, count }));
+
+  return {
+    period: {
+      days,
+      from: from.toISOString(),
+      to: to.toISOString(),
+    },
+    sessionCount: sessions.length,
+    completedCount: statusDistribution.completed || 0,
+    tagDistribution,
+    statusDistribution,
+    riskDistribution,
+    calibration: {
+      count: calibrations.length,
+      feedbackDistribution,
+      latest: calibrations.slice(0, 5).map((calibration) => ({
+        id: calibration.id,
+        sessionId: calibration.sessionId,
+        feedback: calibration.feedback,
+        customText: calibration.customText,
+        createdAt: calibration.createdAt,
+      })),
+    },
+    recurringThemes,
+    reviewText: buildReviewText(sessions.length, tagDistribution, feedbackDistribution, recurringThemes),
+  };
+}
+
 // ─────────────── Helpers ───────────────
 
 function formatSession(session) {
@@ -335,6 +442,24 @@ function formatSession(session) {
   };
 }
 
+function countBy(items, pickKey) {
+  return items.reduce((result, item) => {
+    const key = pickKey(item) || 'unknown';
+    result[key] = (result[key] || 0) + 1;
+    return result;
+  }, {});
+}
+
+function buildReviewText(sessionCount, tagDistribution, feedbackDistribution, recurringThemes) {
+  if (sessionCount === 0) {
+    return '这段时间还没有新的仪式记录，可以先从一个具体问题开始。';
+  }
+  const topTag = Object.entries(tagDistribution).sort((a, b) => b[1] - a[1])[0]?.[0] || 'other';
+  const resonance = feedbackDistribution.resonated || 0;
+  const themeText = recurringThemes[0]?.text ? `，反复出现的关注点是「${recurringThemes[0].text}」` : '';
+  return `最近你完成了 ${sessionCount} 次仪式，最常出现的主题是 ${topTag}${themeText}。已有 ${resonance} 次反馈显示解读与你的感受贴近，可继续观察它们在现实行动中的变化。`;
+}
+
 module.exports = {
   perform,
   getSession,
@@ -345,4 +470,6 @@ module.exports = {
   getCompletionToday,
   storeInterpretation,
   storeAnswer,
+  saveEmotionCalibration,
+  getPeriodicReview,
 };

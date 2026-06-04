@@ -4,13 +4,23 @@
 const { Router } = require('express');
 const { ok } = require('../../shared/response');
 const { validate } = require('../../middleware/validate');
-const { requireAuth } = require('../../middleware/auth');
+const { requireAuth, requireRole } = require('../../middleware/auth');
 const notificationService = require('./service');
 const schemas = require('./schema');
 
 const router = Router();
 
 router.use(requireAuth);
+
+// POST /admin/system - Send operator system notification
+router.post('/admin/system', requireRole(['operator', 'admin']), validate(schemas.systemNotificationSchema), async (req, res, next) => {
+  try {
+    const result = await notificationService.sendSystemNotification(req.userId, req.validated.body);
+    res.json(ok(result));
+  } catch (err) {
+    next(err);
+  }
+});
 
 // GET / - List notifications
 router.get('/', validate(schemas.listSchema, 'query'), async (req, res, next) => {

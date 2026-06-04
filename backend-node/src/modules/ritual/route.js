@@ -116,6 +116,26 @@ router.get('/user/:userId/completion-today', requireAuth, async (req, res, next)
   }
 });
 
+// POST /session/:sessionId/calibration - Save emotional calibration feedback
+router.post('/session/:sessionId/calibration', requireAuth, validate(schemas.calibrationSchema), async (req, res, next) => {
+  try {
+    const result = await ritualService.saveEmotionCalibration(req.params.sessionId, req.userId, req.validated.body);
+    res.json(ok(result));
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /me/periodic-review - Periodic reflection review
+router.get('/me/periodic-review', requireAuth, validate(schemas.reviewQuerySchema, 'query'), async (req, res, next) => {
+  try {
+    const result = await ritualService.getPeriodicReview(req.userId, req.validated.query.days);
+    res.json(ok(result));
+  } catch (err) {
+    next(err);
+  }
+});
+
 // GET /session/:sessionId/tag-profile - Tag identity snapshot
 router.get('/session/:sessionId/tag-profile', requireAuth, async (req, res, next) => {
   try {

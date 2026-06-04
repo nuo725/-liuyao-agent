@@ -143,6 +143,43 @@ async function syncState(userId, readIds = [], dismissedIds = []) {
   };
 }
 
+async function sendSystemNotification(operatorId, data) {
+  const prisma = getPrisma();
+  const where = data.broadcast
+    ? { status: 'active' }
+    : { id: { in: [...new Set(data.userIds)] }, status: 'active' };
+  const users = await prisma.user.findMany({
+    where,
+    select: { id: true },
+    take: data.broadcast ? 5000 : undefined,
+  });
+
+  const results = [];
+  for (const user of users) {
+    const notification = await createNotification(user.id, {
+      type: 'system',
+      title: data.title,
+      body: data.body || '',
+      data: {
+        ...data.data,
+        source: 'operator',
+        operatorId,
+      },
+    });
+    results.push(notification);
+  }
+
+  logger.info(
+    { operatorId, broadcast: data.broadcast, targetCount: users.length },
+    'System notification sent',
+  );
+
+  return {
+    sent: results.length,
+    targetUserIds: users.map((user) => user.id),
+  };
+}
+
 async function findOwnedNotification(prisma, userId, notificationId) {
   const notification = await prisma.notification.findFirst({
     where: { id: notificationId, userId },
@@ -175,4 +212,5 @@ module.exports = {
   registerToken,
   unregisterToken,
   syncState,
+  sendSystemNotification,
 };

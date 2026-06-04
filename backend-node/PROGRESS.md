@@ -11,12 +11,12 @@
 |--------|---------|---------|------|
 | M0：工程可持续 | 第 1 周 | ✅ 已完成 | 15/15 |
 | M1：身份与账本 | 第 2 周 | ✅ 已完成 | 21/21 |
-| M2：仪式数据链路 | 第 3 周 | ✅ 核心完成 | 8/9 |
+| M2：仪式数据链路 | 第 3 周 | ✅ 已完成 | 9/9 |
 | M3：社区生产链路 | 第 4~5 周 | ✅ 已完成 | 12/12 |
-| M4：现有 UI 业务能力接入 | 第 6~7 周 | 🟡 核心完成 | 18/20 |
+| M4：现有 UI 业务能力接入 | 第 6~7 周 | ✅ 已完成 | 20/20 |
 | M5：上线准备 | 第 8 周 | 🟡 起步 | 1/8 |
 
-**整体进度：75/92 个任务完成（82%）**
+**整体进度：78/92 个任务完成（85%）**
 
 ---
 
@@ -103,9 +103,9 @@
 | RITUAL-006 | 心绪存档与会话恢复 | ✅ 已完成 | `src/modules/ritual/service.js` | 跨设备恢复 |
 | RITUAL-007 | 仪式状态机与额度一致性 | ✅ 已完成 | `src/modules/ritual/service.js` | 起卦/追问接入额度消费；配合 Idempotency-Key 防重复扣额 |
 | RITUAL-008 | 每日完成状态 | ✅ 已完成 | `src/modules/ritual/service.js` | completion-today 接口 |
-| RITUAL-009 | 情绪校准与周期回顾 | 🔲 未开始 | — | P1，可后续实现 |
+| RITUAL-009 | 情绪校准与周期回顾 | ✅ 已完成 | `POST /ritual/session/:sessionId/calibration` + `GET /ritual/me/periodic-review` | 保存情绪反馈并输出近 N 天主题、反馈与关注点回顾 |
 
-**Phase 3 进度：8/9**
+**Phase 3 进度：9/9**
 
 ---
 
@@ -143,9 +143,9 @@
 | NOTIFY-003 | 已读、全部已读与删除 | ✅ 已完成 | read/read-all/dismiss/state | 操作幂等 |
 | NOTIFY-004 | 推送 Token 注册 | ✅ 已完成 | `PushToken` 接口 | Token 与用户、设备平台绑定 |
 | NOTIFY-005 | 异步推送任务 | ✅ 已完成 | `OutboxJob notification.push` + worker | 推送 adapter 未配置时可安全确认任务 |
-| NOTIFY-006 | 活动与系统通知 | 🟡 部分完成 | 活动报名通知 | 系统通知运营入口待补 |
+| NOTIFY-006 | 活动与系统通知 | ✅ 已完成 | 活动报名通知 + `/notifications/admin/system` | operator/admin 可定向或广播系统通知，复用 Outbox 推送 |
 
-**Phase 5 进度：5/6**
+**Phase 5 进度：6/6**
 
 ---
 
@@ -174,14 +174,14 @@
 | ID | 任务 | 状态 | 交付物 | 备注 |
 |----|------|------|--------|------|
 | SHARE-001 | 保存分享卡草稿 | ✅ 已完成 | `ShareCardDraft` + `/share/card/save` | 草稿按用户和 cardId 幂等 |
-| SHARE-002 | 服务端分享卡渲染 | 🟡 部分完成 | `/share/card/render` | 已返回稳定 imageUrl；真实高分辨率位图生成待补 |
+| SHARE-002 | 服务端分享卡渲染 | ✅ 已完成 | `/share/card/render` + `/uploads/share/*.svg` | 服务端生成 1200x1600 SVG 分享图并返回稳定 imageUrl |
 | SHARE-003 | 发布分享卡到社区 | ✅ 已完成 | `/share/community/publish` | 复用社区发布审核与公开卡校验 |
 | SHARE-004 | 外部分享载荷 | ✅ 已完成 | `/share/external` | 返回标题、摘要、链接和图片 URL |
 | ANALYTICS-001 | 核心事件埋点接收 | ✅ 已完成 | `src/modules/analytics/` | 登录用户可上报核心事件 |
 | ANALYTICS-002 | 北极星指标计算 | ✅ 已完成 | `/analytics/wmru` + `/analytics/wmru/recalculate` | 按 ISO 周计算 WMRU 并缓存到 `WeeklyMetric` |
 | ANALYTICS-003 | 安全与审核指标 | ✅ 已完成 | `/analytics/safety` | 输出审核命中率、举报处理状态、下架/限流数量 |
 
-**Phase 7 进度：6/7**
+**Phase 7 进度：7/7**
 
 ---
 
@@ -291,7 +291,7 @@ backend-node/
 |------|---------|---------|
 | 三套 API 口径并存 | ✅ 已解决 | OpenAPI 冻结正式契约，旧路由保留兼容层 |
 | 私密问题泄露到社区 | ✅ 已落地 | 社区发布校验卡归属与 communitySafeContent，只返回公开版 cardPreview |
-| 社区内容安全不足 | ✅ 核心解决 | 发布/评论前审核、举报/屏蔽、审核记录已实现；审核后台待补 |
+| 社区内容安全不足 | ✅ 已解决 | 发布/评论前审核、举报/屏蔽、审核记录和审核后台已实现 |
 | 同时开发全部模块 | ✅ 已避免 | 严格按 M0→M5 里程碑推进 |
 | 缺少自动化测试 | ⚠️ 部分解决 | CI、lint、基础测试与审核规则测试已补；业务集成测试待扩展 |
 | 无 Docker/PostgreSQL 环境 | ⚠️ 当前限制 | Docker Compose 已创建，需在有 Docker 环境时运行迁移 |
@@ -307,12 +307,10 @@ backend-node/
 3. **补真实数据库迁移文件** → 当前 schema 可 generate，待连接 PostgreSQL 后执行 migrate
 
 ### 优先级 P1（补齐 UI 后端能力）
-4. **SHARE-002** → 真正生成服务端高分辨率分享图
-5. **NOTIFY-006** → 系统通知运营入口
-6. **补业务集成测试** → 覆盖审核、活动、账单、公开主页和 Analytics
+4. **补业务集成测试** → 覆盖审核、活动、账单、公开主页、通知、分享和 Analytics
 
 ### 优先级 P2（长期价值）
-7. **Phase 9** → 匿名身份、反馈帖、推荐深化
+5. **Phase 9** → 匿名身份、反馈帖、推荐深化
 
 ---
 
@@ -320,6 +318,7 @@ backend-node/
 
 | 日期 | 内容 |
 |------|------|
+| 2026-06-04 | 本轮追加：补 SHARE-002 服务端 SVG 分享图、NOTIFY-006 系统通知运营入口、RITUAL-009 情绪校准与周期回顾；同步 OpenAPI；更新进度至 78/92 |
 | 2026-06-04 | 本轮追加：删除临时快照；补审核后台、公开主页、活动管理和 Analytics 指标；更新进度至 75/92 |
 | 2026-06-04 | 本轮更新：补 CI、Prisma 模型、社区审核与公开卡校验、通知、媒体、账单、同频、活动、分享、反馈、Outbox worker；修正进度统计口径 |
 | 2026-06-04 | 初始创建。完成 Phase 0 全部工程基础、Phase 1 认证与个人资料、Phase 2 额度管理、Phase 3 仪式数据链路、Phase 4 社区核心功能 |

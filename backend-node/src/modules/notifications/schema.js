@@ -22,9 +22,21 @@ const stateSchema = z.object({
   dismissedIds: z.array(z.string()).default([]),
 });
 
+const systemNotificationSchema = z.object({
+  title: z.string().min(1).max(80),
+  body: z.string().max(500).default(''),
+  broadcast: z.boolean().default(false),
+  userIds: z.array(z.string().min(1)).max(500).default([]),
+  data: z.record(z.string(), z.unknown()).default({}),
+}).refine((data) => data.broadcast || data.userIds.length > 0, {
+  message: 'broadcast or userIds required',
+  path: ['userIds'],
+});
+
 module.exports = {
   listSchema,
   tokenSchema,
   unregisterTokenSchema,
   stateSchema,
+  systemNotificationSchema,
 };

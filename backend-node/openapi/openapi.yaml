@@ -66,6 +66,8 @@ tags:
     description: 活动
   - name: share
     description: 分享卡
+  - name: analytics
+    description: 产品指标与安全运营指标
   - name: support
     description: 帮助与反馈
   - name: media
@@ -351,6 +353,39 @@ paths:
                     properties:
                       data:
                         $ref: '#/components/schemas/UserProfile'
+    delete:
+      tags: [profile]
+      summary: 注销账号
+      operationId: deleteAccount
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [confirmText]
+              properties:
+                confirmText:
+                  type: string
+                  description: 必须输入"注销"确认
+      responses:
+        '200':
+          description: 注销申请已提交
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          coolingOffDays:
+                            type: integer
+                            example: 7
 
   /profile/me/settings:
     get:
@@ -486,41 +521,6 @@ paths:
                 allOf:
                   - $ref: '#/components/schemas/SuccessResponse'
                   - $ref: '#/components/schemas/PaginatedList'
-
-  /profile/me:
-    delete:
-      tags: [profile]
-      summary: 注销账号
-      operationId: deleteAccount
-      security:
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [confirmText]
-              properties:
-                confirmText:
-                  type: string
-                  description: 必须输入"注销"确认
-      responses:
-        '200':
-          description: 注销申请已提交
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/schemas/SuccessResponse'
-                  - type: object
-                    properties:
-                      data:
-                        type: object
-                        properties:
-                          coolingOffDays:
-                            type: integer
-                            example: 7
 
   # ─────────────── Credits ───────────────
   /credit/account:
@@ -973,7 +973,181 @@ paths:
                           dateKey:
                             type: string
 
+  /ritual/session/{sessionId}/calibration:
+    post:
+      tags: [ritual]
+      summary: 提交情绪校准反馈
+      operationId: calibrateRitualEmotion
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                feedback:
+                  type: string
+                  enum: [resonated, neutral, not_resonated]
+                customText:
+                  type: string
+                  maxLength: 500
+      responses:
+        '200':
+          description: 校准反馈已保存
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+  /ritual/me/periodic-review:
+    get:
+      tags: [ritual]
+      summary: 获取周期回顾
+      operationId: getPeriodicRitualReview
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: days
+          in: query
+          schema:
+            type: integer
+            minimum: 7
+            maximum: 365
+            default: 30
+      responses:
+        '200':
+          description: 周期回顾
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          sessionCount:
+                            type: integer
+                          completedCount:
+                            type: integer
+                          tagDistribution:
+                            type: object
+                          calibration:
+                            type: object
+                          recurringThemes:
+                            type: array
+                            items:
+                              type: object
+                          reviewText:
+                            type: string
+
   # ─────────────── Community ───────────────
+  /community/admin/moderation:
+    get:
+      tags: [community]
+      summary: 获取审核队列
+      operationId: getModerationQueue
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [all, post, comment]
+            default: all
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/PageSize'
+      responses:
+        '200':
+          description: 审核队列
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+  /community/admin/moderation/{targetType}/{targetId}:
+    post:
+      tags: [community]
+      summary: 处理自动审核目标
+      operationId: handleModerationTarget
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: targetType
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: targetId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [decision]
+              properties:
+                decision:
+                  type: string
+                  enum: [approve, remove, limit, warn, dismiss]
+                reason:
+                  type: string
+      responses:
+        '200':
+          description: 处理结果
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+  /community/admin/reports/{reportId}:
+    post:
+      tags: [community]
+      summary: 处理用户举报
+      operationId: handleReport
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: reportId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [decision]
+              properties:
+                decision:
+                  type: string
+                  enum: [approve, remove, limit, warn, dismiss]
+                reason:
+                  type: string
+      responses:
+        '200':
+          description: 处理结果
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
   /community/feed:
     get:
       tags: [community]
@@ -1476,6 +1650,57 @@ paths:
                 $ref: '#/components/schemas/SuccessResponse'
 
   # ─────────────── Notifications ───────────────
+  /notifications/admin/system:
+    post:
+      tags: [notifications]
+      summary: 运营发送系统通知
+      operationId: sendSystemNotification
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title]
+              properties:
+                title:
+                  type: string
+                  maxLength: 80
+                body:
+                  type: string
+                  maxLength: 500
+                broadcast:
+                  type: boolean
+                  default: false
+                userIds:
+                  type: array
+                  maxItems: 500
+                  items:
+                    type: string
+                data:
+                  type: object
+      responses:
+        '200':
+          description: 发送结果
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/SuccessResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          sent:
+                            type: integer
+                          targetUserIds:
+                            type: array
+                            items:
+                              type: string
+
   /notifications:
     get:
       tags: [notifications]
@@ -1782,6 +2007,70 @@ paths:
                             format: date-time
 
   # ─────────────── Activities ───────────────
+  /activities/admin:
+    post:
+      tags: [activities]
+      summary: 创建活动
+      operationId: createActivity
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title, description, startAt, endAt]
+              properties:
+                title:
+                  type: string
+                description:
+                  type: string
+                startAt:
+                  type: string
+                  format: date-time
+                endAt:
+                  type: string
+                  format: date-time
+                capacity:
+                  type: integer
+                  nullable: true
+                coverImageUrl:
+                  type: string
+      responses:
+        '200':
+          description: 活动已创建
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+  /activities/admin/{id}:
+    put:
+      tags: [activities]
+      summary: 更新活动
+      operationId: updateActivity
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: 活动已更新
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
   /activities/list:
     get:
       tags: [activities]
@@ -1935,6 +2224,15 @@ paths:
                         properties:
                           imageUrl:
                             type: string
+                          width:
+                            type: integer
+                          height:
+                            type: integer
+                          format:
+                            type: string
+                            enum: [svg]
+                          card:
+                            type: object
 
   /share/card/save:
     post:
@@ -2047,6 +2345,106 @@ paths:
                             type: string
                           imageUrl:
                             type: string
+
+  # ─────────────── Analytics ───────────────
+  /analytics/events:
+    post:
+      tags: [analytics]
+      summary: 上报产品埋点事件
+      operationId: ingestAnalyticsEvent
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [eventName]
+              properties:
+                eventName:
+                  type: string
+                  maxLength: 80
+                payload:
+                  type: object
+                client:
+                  type: object
+                occurredAt:
+                  type: string
+                  format: date-time
+      responses:
+        '200':
+          description: 事件已接收
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+  /analytics/wmru:
+    get:
+      tags: [analytics]
+      summary: 获取周活跃仪式用户指标
+      operationId: getWmru
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: weekKey
+          in: query
+          schema:
+            type: string
+            pattern: '^\d{4}-W\d{2}$'
+      responses:
+        '200':
+          description: WMRU 指标
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+  /analytics/wmru/recalculate:
+    post:
+      tags: [analytics]
+      summary: 重算周活跃仪式用户指标
+      operationId: recalculateWmru
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                weekKey:
+                  type: string
+                  pattern: '^\d{4}-W\d{2}$'
+      responses:
+        '200':
+          description: WMRU 已重算
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+
+  /analytics/safety:
+    get:
+      tags: [analytics]
+      summary: 获取安全与审核指标
+      operationId: getSafetyMetrics
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: weekKey
+          in: query
+          schema:
+            type: string
+            pattern: '^\d{4}-W\d{2}$'
+      responses:
+        '200':
+          description: 安全指标
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
 
   # ─────────────── Support ───────────────
   /support/feedback:

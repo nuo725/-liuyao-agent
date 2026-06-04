@@ -18,4 +18,22 @@ const paginationSchema = z.object({
   pageSize: z.coerce.number().int().min(1).max(50).default(20),
 });
 
-module.exports = { performSchema, continueSchema, paginationSchema };
+const calibrationSchema = z.object({
+  feedback: z.enum(['resonated', 'neutral', 'not_resonated']).optional(),
+  customText: z.string().max(500).optional(),
+}).refine((data) => data.feedback || data.customText, {
+  message: 'feedback or customText required',
+  path: ['feedback'],
+});
+
+const reviewQuerySchema = z.object({
+  days: z.coerce.number().int().min(7).max(365).default(30),
+});
+
+module.exports = {
+  performSchema,
+  continueSchema,
+  paginationSchema,
+  calibrationSchema,
+  reviewQuerySchema,
+};
