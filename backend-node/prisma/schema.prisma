@@ -208,6 +208,8 @@ model User {
   activityJoins    ActivityJoin[]
   checkinRecords   CheckinRecord[]
   emotionCalibrations EmotionCalibration[]
+  anonymousProfile AnonymousProfile?
+  ritualFeedbacks  RitualFeedback[]
 
   @@map("users")
 }
@@ -287,6 +289,7 @@ model RitualSession {
   user             User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   interpretationCard InterpretationCard?
   followupMessages FollowupMessage[]
+  feedbacks        RitualFeedback[]
 
   @@index([userId, createdAt])
   @@index([status])
@@ -781,4 +784,39 @@ model OutboxJob {
 
   @@index([status, availableAt])
   @@map("outbox_jobs")
+}
+
+// ─────────────── Anonymous Identity Domain (Phase 9) ───────────────
+
+model AnonymousProfile {
+  id          String   @id @default(cuid())
+  userId      String   @unique @map("user_id")
+  displayName String   @map("display_name") // 随机生成的匿名昵称
+  avatarSeed  String   @map("avatar_seed") // 用于生成匿名头像的种子
+  bio         String   @default("")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("anonymous_profiles")
+}
+
+// ─────────────── Feedback Domain (Phase 9) ───────────────
+
+model RitualFeedback {
+  id            String   @id @default(cuid())
+  userId        String   @map("user_id")
+  sessionId     String   @map("session_id")
+  outcome       String   // 事情的实际发展
+  feeling       String   // 用户的感受
+  followUp      String?  @map("follow_up") // 后续变化
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  user    User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  session RitualSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([sessionId])
+  @@map("ritual_feedbacks")
 }

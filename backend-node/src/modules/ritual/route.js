@@ -163,4 +163,49 @@ router.get('/session/:sessionId/tag-explanation', requireAuth, async (req, res, 
   }
 });
 
+// ─────── Feedback (Phase 9) ───────
+
+const feedbackService = require('./feedback-service');
+
+// POST /session/:sessionId/feedback - Submit feedback
+router.post('/session/:sessionId/feedback', requireAuth, async (req, res, next) => {
+  try {
+    const result = await feedbackService.submitFeedback(req.userId, req.params.sessionId, req.body);
+    res.json(ok(result));
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /session/:sessionId/feedback - Get session feedback
+router.get('/session/:sessionId/feedback', requireAuth, async (req, res, next) => {
+  try {
+    const result = await feedbackService.getSessionFeedback(req.params.sessionId, req.userId);
+    res.json(ok({ items: result }));
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /me/feedback - Get feedback history
+router.get('/me/feedback', requireAuth, validate(schemas.paginationSchema, 'query'), async (req, res, next) => {
+  try {
+    const { page, pageSize } = req.validated.query;
+    const result = await feedbackService.getFeedbackHistory(req.userId, page, pageSize);
+    res.json(ok(result));
+  } catch (err) {
+    next(err);
+  }
+});
+
+// POST /feedback/:feedbackId/publish - Publish feedback to community
+router.post('/feedback/:feedbackId/publish', requireAuth, async (req, res, next) => {
+  try {
+    const result = await feedbackService.createFeedbackPost(req.userId, req.params.feedbackId, req.body.shareText);
+    res.json(ok(result));
+  } catch (err) {
+    next(err);
+  }
+});
+
 module.exports = router;

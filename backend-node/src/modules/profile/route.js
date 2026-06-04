@@ -146,4 +146,38 @@ router.get('/me/share-card', async (req, res, next) => {
   }
 });
 
+// ─────── Anonymous Identity (Phase 9) ───────
+
+const anonymousService = require('./anonymous-service');
+
+// GET /me/anonymous - Get or create anonymous profile
+router.get('/me/anonymous', async (req, res, next) => {
+  try {
+    const result = await anonymousService.getOrCreateProfile(req.userId);
+    res.json(ok(result));
+  } catch (err) {
+    next(err);
+  }
+});
+
+// PUT /me/anonymous - Update anonymous profile
+router.put('/me/anonymous', async (req, res, next) => {
+  try {
+    const result = await anonymousService.updateProfile(req.userId, req.body);
+    res.json(ok(result));
+  } catch (err) {
+    next(err);
+  }
+});
+
+// POST /me/anonymous/post - Create anonymous post
+router.post('/me/anonymous/post', async (req, res, next) => {
+  try {
+    const result = await anonymousService.createAnonymousPost(req.userId, req.body);
+    res.json(ok(result));
+  } catch (err) {
+    next(err);
+  }
+});
+
 module.exports = router;
