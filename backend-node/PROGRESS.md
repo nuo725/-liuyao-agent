@@ -23,7 +23,7 @@
 | M4：现有 UI 业务能力接入 | 第 6~7 周 | ✅ 已完成 | 20/20 |
 | M5：上线准备 | 第 8 周 | ✅ 已完成 | 8/8 |
 
-**整体进度：90/92 个任务完成（98%）**
+**整体进度：92/92 个任务完成（100%）**
 
 ---
 
@@ -221,11 +221,11 @@
 | COMMUNITY-013 | 匿名发布与匿名互动 | ✅ 已完成 | `POST /profile/me/anonymous/post` | 后端仍可审计真实用户，前端只见匿名身份 |
 | FEEDBACK-001 | 解读结果反馈 | ✅ 已完成 | `src/modules/ritual/feedback-service.js` + `RitualFeedback` 模型 | 用户可在后续补充事情发展与感受 |
 | COMMUNITY-014 | 反馈帖与阶段性复盘 | ✅ 已完成 | `POST /ritual/feedback/:id/publish` | 反馈可关联原会话，不泄露私密问题 |
-| RECOMMEND-001 | 推荐与深谈分发深化 | 🔲 未开始 | — | 需要更多数据和算法迭代 |
-| CASE-001 | 结构化案例检索 | 🔲 未开始 | — | 需要更多案例数据 |
+| RECOMMEND-001 | 推荐与深谈分发深化 | ✅ 已完成 | `src/modules/community/recommend.js` | 可解释的分发规则，支持多样性过滤 |
+| CASE-001 | 结构化案例检索 | ✅ 已完成 | `src/modules/ritual/case-service.js` | 支持问题类型、卦象结构、关键词筛选 |
 | REVIEW-001 | 周期性情绪与成长报告 | ✅ 已完成 | `GET /ritual/me/periodic-review` | 输出近 N 天主题、反馈与关注点回顾 |
 
-**Phase 9 进度：5/7**
+**Phase 9 进度：7/7**
 
 ---
 
@@ -340,6 +340,7 @@ backend-node/
 | 2026-06-04 | 本轮追加：补 OPS-004 性能压测脚本、OPS-006 ready/metrics 监控端点与告警检查脚本；同步 OpenAPI、Runbook 和测试；更新进度至 82/92 |
 | 2026-06-04 | 本轮完成：OPS-005 灰度开关（10 个 feature flag + admin API + 回滚手册）、OPS-007 隐私删除（数据导出/删除脚本）、OPS-008 契约回归测试（Flutter 主链路覆盖）；更新进度至 85/92 |
 | 2026-06-04 | 本轮完成：Phase 9 P2 功能 — IDENTITY-001 匿名身份、COMMUNITY-013 匿名发布、FEEDBACK-001 解读反馈、COMMUNITY-014 反馈帖、REVIEW-001 周期回顾；更新进度至 90/92 |
+| 2026-06-04 | 本轮完成：RECOMMEND-001 推荐分发深化（可解释规则 + 多样性过滤）、CASE-001 结构化案例检索（问题类型/卦象/关键词筛选）；更新进度至 92/92（100%） |
 | 2026-06-04 | 本轮追加：在文档最前面补 Git 版本管理要求；补 OPS-002 备份/恢复演练脚本与 Runbook、OPS-003 本地安全检查脚本和测试；更新进度至 80/92 |
 | 2026-06-04 | 本轮追加：补 SHARE-002 服务端 SVG 分享图、NOTIFY-006 系统通知运营入口、RITUAL-009 情绪校准与周期回顾；同步 OpenAPI；更新进度至 78/92 |
 | 2026-06-04 | 本轮追加：删除临时快照；补审核后台、公开主页、活动管理和 Analytics 指标；更新进度至 75/92 |

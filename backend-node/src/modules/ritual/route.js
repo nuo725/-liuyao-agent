@@ -208,4 +208,72 @@ router.post('/feedback/:feedbackId/publish', requireAuth, async (req, res, next)
   }
 });
 
+// ─────── Case Retrieval (Phase 9) ───────
+
+const caseService = require('./case-service');
+
+// GET /cases/search - Search cases
+router.get('/cases/search', async (req, res, next) => {
+  try {
+    const { tag, keyword, riskLevel, page, pageSize } = req.query;
+    const result = await caseService.searchCases(
+      { tag, keyword, riskLevel },
+      parseInt(page) || 1,
+      parseInt(pageSize) || 20
+    );
+    res.json(ok(result));
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /cases/:caseId - Get single case
+router.get('/cases/:caseId', async (req, res, next) => {
+  try {
+    const result = await caseService.getCase(req.params.caseId);
+    if (!result) {
+      const { ApiError } = require('../../shared/api-error');
+      throw ApiError.notFound('Case not found');
+    }
+    res.json(ok(result));
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /cases/pattern/:lines - Get cases by hexagram pattern
+router.get('/cases/pattern/:lines', async (req, res, next) => {
+  try {
+    const lines = req.params.lines.split(',').map(Number);
+    const movingLines = req.query.moving ? req.query.moving.split(',').map(Number) : [];
+    const page = parseInt(req.query.page) || 1;
+    const pageSize = parseInt(req.query.pageSize) || 20;
+    const result = await caseService.getCasesByPattern(lines, movingLines, page, pageSize);
+    res.json(ok(result));
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /cases/popular - Get popular cases
+router.get('/cases/popular', async (req, res, next) => {
+  try {
+    const { tag, page, pageSize } = req.query;
+    const result = await caseService.getPopularCases(tag, parseInt(page) || 1, parseInt(pageSize) || 20);
+    res.json(ok(result));
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /cases/stats - Get tag statistics
+router.get('/cases/stats', async (req, res, next) => {
+  try {
+    const result = await caseService.getTagStats();
+    res.json(ok({ tags: result }));
+  } catch (err) {
+    next(err);
+  }
+});
+
 module.exports = router;
