@@ -20,6 +20,7 @@ async function main() {
       bio: '带着真实困惑，在宽窄之间寻找角度。',
       avatarUrl: '',
       coverUrl: '',
+      role: 'admin',
       shortId: 'demo001',
     },
   });

@@ -4,11 +4,21 @@
 const { Router } = require('express');
 const { ok } = require('../../shared/response');
 const { validate } = require('../../middleware/validate');
-const { requireAuth } = require('../../middleware/auth');
+const { requireAuth, optionalAuth } = require('../../middleware/auth');
 const profileService = require('./service');
 const schemas = require('./schema');
 
 const router = Router();
+
+// GET /public/:shortId - Public profile page
+router.get('/public/:shortId', optionalAuth, async (req, res, next) => {
+  try {
+    const result = await profileService.getPublicProfile(req.params.shortId, req.userId);
+    res.json(ok(result));
+  } catch (err) {
+    next(err);
+  }
+});
 
 // All profile routes require auth
 router.use(requireAuth);

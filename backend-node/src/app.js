@@ -21,6 +21,7 @@ const activityRoutes = require('./modules/activities/route');
 const shareRoutes = require('./modules/share/route');
 const supportRoutes = require('./modules/support/route');
 const mediaRoutes = require('./modules/media/route');
+const analyticsRoutes = require('./modules/analytics/route');
 
 function createApp() {
   const app = express();
@@ -56,6 +57,7 @@ function createApp() {
   app.use('/api/v1/share', shareRoutes);
   app.use('/api/v1/support', supportRoutes);
   app.use('/api/v1/media', mediaRoutes);
+  app.use('/api/v1/analytics', analyticsRoutes);
 
   // 404 fallback
   app.use((req, res) => {

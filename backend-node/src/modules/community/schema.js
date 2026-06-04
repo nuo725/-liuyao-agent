@@ -46,6 +46,17 @@ const paginationSchema = z.object({
   pageSize: z.coerce.number().int().min(1).max(50).default(20),
 });
 
+const moderationQueueSchema = z.object({
+  type: z.enum(['all', 'post', 'comment', 'report']).default('all'),
+  page: z.coerce.number().int().min(1).default(1),
+  pageSize: z.coerce.number().int().min(1).max(50).default(20),
+});
+
+const moderationDecisionSchema = z.object({
+  decision: z.enum(['approve', 'remove', 'limit', 'warn', 'dismiss']),
+  reason: z.string().max(500).optional(),
+});
+
 module.exports = {
   feedSchema,
   createPostSchema,
@@ -55,4 +66,6 @@ module.exports = {
   tagFeedSchema,
   subscribeTagSchema,
   paginationSchema,
+  moderationQueueSchema,
+  moderationDecisionSchema,
 };

@@ -10,13 +10,13 @@
 | 里程碑 | 目标周期 | 当前状态 | 进度 |
 |--------|---------|---------|------|
 | M0：工程可持续 | 第 1 周 | ✅ 已完成 | 15/15 |
-| M1：身份与账本 | 第 2 周 | ✅ 核心完成 | 20/21 |
+| M1：身份与账本 | 第 2 周 | ✅ 已完成 | 21/21 |
 | M2：仪式数据链路 | 第 3 周 | ✅ 核心完成 | 8/9 |
-| M3：社区生产链路 | 第 4~5 周 | ✅ 核心完成 | 11/12 |
-| M4：现有 UI 业务能力接入 | 第 6~7 周 | 🟡 进行中 | 14/20 |
+| M3：社区生产链路 | 第 4~5 周 | ✅ 已完成 | 12/12 |
+| M4：现有 UI 业务能力接入 | 第 6~7 周 | 🟡 核心完成 | 18/20 |
 | M5：上线准备 | 第 8 周 | 🟡 起步 | 1/8 |
 
-**整体进度：69/92 个任务完成（75%）**
+**整体进度：75/92 个任务完成（82%）**
 
 ---
 
@@ -61,12 +61,12 @@
 | PROFILE-002 | 媒体上传服务 | ✅ 已完成 | `src/modules/media/service.js` | 本地存储适配器，支持 multipart 与远程 URL 登记，校验 MIME/大小/用途 |
 | PROFILE-003 | 头像与封面更新 | ✅ 已完成 | `POST /profile/me/avatar` + `POST /profile/me/cover` | 只允许引用本人对应用途的已上传媒体 |
 | PROFILE-004 | 用户设置 | ✅ 已完成 | `src/modules/profile/service.js` | 推送、震动、音效、公开主页开关 |
-| PROFILE-005 | 公开主页与分享链接 | 🟡 部分完成 | `GET /profile/me/share-card` | 已有个人分享载荷；公开主页查询仍待补 |
+| PROFILE-005 | 公开主页与分享链接 | ✅ 已完成 | `GET /profile/me/share-card` + `GET /profile/public/:shortId` | 关闭公开主页时不泄露资料 |
 | PROFILE-006 | 互动记录与浏览记录 | ✅ 已完成 | `src/modules/profile/service.js` + `PostView` 模型 | 互动与浏览记录均支持分页查询 |
 | PROFILE-007 | 账号注销与冷静期 | ✅ 已完成 | `src/modules/profile/service.js` | 7 天冷静期 |
 | SUPPORT-001 | 帮助与反馈 | ✅ 已完成 | `src/modules/support/` | 创建 `SupportTicket` 并返回 ticketId |
 
-**Phase 1 进度：12/13**
+**Phase 1 进度：13/13**
 
 ---
 
@@ -125,10 +125,10 @@
 | COMMUNITY-008 | 作者主页与关注 | ✅ 已完成 | `src/modules/community/service.js` | 关注幂等，屏蔽关系优先 |
 | COMMUNITY-009 | 举报、不感兴趣与屏蔽 | ✅ 已完成 | `src/modules/community/service.js` | 举报可审计 |
 | COMMUNITY-010 | 社区搜索 | ✅ 已完成 | `src/modules/community/service.js` | 支持帖子/用户/活动搜索 |
-| COMMUNITY-011 | 审核后台最小能力 | 🔲 未开始 | — | — |
+| COMMUNITY-011 | 审核后台最小能力 | ✅ 已完成 | `/community/admin/moderation` + `/community/admin/reports/:reportId` | 运营/admin 可处理自动审核命中内容与举报，写入审计记录 |
 | COMMUNITY-012 | Feed 指标一致性 | ✅ 已完成 | `src/modules/community/service.js` | 点赞/收藏/浏览/评论数一致 |
 
-**Phase 4 进度：11/12**
+**Phase 4 进度：12/12**
 
 ---
 
@@ -159,11 +159,11 @@
 | MATCH-002 | 今日签名与匹配数据 | ✅ 已完成 | same-frequency users | 返回匹配理由，不返回评分 |
 | MATCH-003 | 历史同频内容 | ✅ 已完成 | same-frequency history | 从公开社区内容返回历史同频 |
 | ACTIVITY-001 | 活动列表与详情 | ✅ 已完成 | `src/modules/activities/` | 支持分页、详情、joinStatus |
-| ACTIVITY-002 | 活动管理最小能力 | 🔲 未开始 | — | — |
+| ACTIVITY-002 | 活动管理最小能力 | ✅ 已完成 | `/activities/admin` + `/activities/admin/:id` | 仅 operator/admin 可创建、编辑和变更状态 |
 | ACTIVITY-003 | 活动报名与状态 | ✅ 已完成 | join/join-status | 重复报名幂等 |
 | ACTIVITY-004 | 活动参与人数与容量 | ✅ 已完成 | capacity control | 满员进入 waitlist，不增加参与人数 |
 
-**Phase 6 进度：6/7**
+**Phase 6 进度：7/7**
 
 ---
 
@@ -177,11 +177,11 @@
 | SHARE-002 | 服务端分享卡渲染 | 🟡 部分完成 | `/share/card/render` | 已返回稳定 imageUrl；真实高分辨率位图生成待补 |
 | SHARE-003 | 发布分享卡到社区 | ✅ 已完成 | `/share/community/publish` | 复用社区发布审核与公开卡校验 |
 | SHARE-004 | 外部分享载荷 | ✅ 已完成 | `/share/external` | 返回标题、摘要、链接和图片 URL |
-| ANALYTICS-001 | 核心事件埋点接收 | 🔲 未开始 | — | — |
-| ANALYTICS-002 | 北极星指标计算 | 🔲 未开始 | — | — |
-| ANALYTICS-003 | 安全与审核指标 | 🔲 未开始 | — | — |
+| ANALYTICS-001 | 核心事件埋点接收 | ✅ 已完成 | `src/modules/analytics/` | 登录用户可上报核心事件 |
+| ANALYTICS-002 | 北极星指标计算 | ✅ 已完成 | `/analytics/wmru` + `/analytics/wmru/recalculate` | 按 ISO 周计算 WMRU 并缓存到 `WeeklyMetric` |
+| ANALYTICS-003 | 安全与审核指标 | ✅ 已完成 | `/analytics/safety` | 输出审核命中率、举报处理状态、下架/限流数量 |
 
-**Phase 7 进度：3/7**
+**Phase 7 进度：6/7**
 
 ---
 
@@ -247,7 +247,8 @@ backend-node/
 │   └── unit/
 │       ├── health.test.js                      # 健康检查测试
 │       ├── error-format.test.js                # 错误格式测试
-│       └── community-moderation.test.js        # 社区审核规则测试
+│       ├── community-moderation.test.js        # 社区审核规则测试
+│       └── analytics.test.js                   # Analytics 周指标辅助函数测试
 ├── src/
 │   ├── app.js                                  # Express app 工厂
 │   ├── server.js                               # 服务器启动入口
@@ -278,7 +279,8 @@ backend-node/
 │       ├── activities/  (route + service + schema)
 │       ├── share/       (route + service + schema)
 │       ├── support/     (route + service + schema)
-│       └── media/       (route + service)
+│       ├── media/       (route + service)
+│       └── analytics/   (route + service + schema)
 ```
 
 ---
@@ -293,7 +295,7 @@ backend-node/
 | 同时开发全部模块 | ✅ 已避免 | 严格按 M0→M5 里程碑推进 |
 | 缺少自动化测试 | ⚠️ 部分解决 | CI、lint、基础测试与审核规则测试已补；业务集成测试待扩展 |
 | 无 Docker/PostgreSQL 环境 | ⚠️ 当前限制 | Docker Compose 已创建，需在有 Docker 环境时运行迁移 |
-| 当前环境无 Git/npm 全局命令 | ⚠️ 当前限制 | 已创建本地快照；本轮使用内置 Node 直接调用本地 CLI |
+| 当前环境 npm 全局命令不可用 | ⚠️ 当前限制 | 使用内置 Node 直接调用本地 CLI；Git 已通过 `D:\Git\cmd\git.exe` 可用 |
 
 ---
 
@@ -302,17 +304,15 @@ backend-node/
 ### 优先级 P0（让前端真正可用）
 1. **启动 PostgreSQL** → `docker compose up -d` → `npm run db:migrate` → `npm run db:seed`
 2. **跑一次真实迁移/种子验收** → 当前已通过 Prisma generate，待数据库环境验证迁移和 seed
-3. **补审核后台最小能力** → COMMUNITY-011
+3. **补真实数据库迁移文件** → 当前 schema 可 generate，待连接 PostgreSQL 后执行 migrate
 
 ### 优先级 P1（补齐 UI 后端能力）
-4. **PROFILE-005** → 公开主页查询与分享链接完整验收
-5. **ACTIVITY-002** → 活动管理最小能力与运营权限
-6. **SHARE-002** → 真正生成服务端高分辨率分享图
-7. **ANALYTICS-001~003** → 埋点接收、WMRU 和审核指标
-8. **NOTIFY-006** → 系统通知运营入口
+4. **SHARE-002** → 真正生成服务端高分辨率分享图
+5. **NOTIFY-006** → 系统通知运营入口
+6. **补业务集成测试** → 覆盖审核、活动、账单、公开主页和 Analytics
 
 ### 优先级 P2（长期价值）
-9. **Phase 9** → 匿名身份、反馈帖、推荐深化
+7. **Phase 9** → 匿名身份、反馈帖、推荐深化
 
 ---
 
@@ -320,5 +320,6 @@ backend-node/
 
 | 日期 | 内容 |
 |------|------|
+| 2026-06-04 | 本轮追加：删除临时快照；补审核后台、公开主页、活动管理和 Analytics 指标；更新进度至 75/92 |
 | 2026-06-04 | 本轮更新：补 CI、Prisma 模型、社区审核与公开卡校验、通知、媒体、账单、同频、活动、分享、反馈、Outbox worker；修正进度统计口径 |
 | 2026-06-04 | 初始创建。完成 Phase 0 全部工程基础、Phase 1 认证与个人资料、Phase 2 额度管理、Phase 3 仪式数据链路、Phase 4 社区核心功能 |

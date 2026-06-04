@@ -90,6 +90,34 @@ async function getJoinStatus(activityId, userId) {
   return { status: join?.status || 'none' };
 }
 
+async function createActivity(data, operatorId) {
+  const prisma = getPrisma();
+  const activity = await prisma.activity.create({
+    data: normalizeActivityData(data),
+  });
+  await createActivityNotification(activity, operatorId, 'created');
+  return formatActivity(activity);
+}
+
+async function updateActivity(activityId, data, operatorId) {
+  const prisma = getPrisma();
+  const existing = await prisma.activity.findUnique({ where: { id: activityId } });
+  if (!existing) {
+    throw ApiError.notFound('Activity not found');
+  }
+
+  const activity = await prisma.activity.update({
+    where: { id: activityId },
+    data: normalizeActivityData(data),
+  });
+
+  if (data.status && data.status !== existing.status) {
+    await notifyActivityParticipants(prisma, activity, data.status).catch(() => {});
+  }
+  await createActivityNotification(activity, operatorId, 'updated');
+  return formatActivity(activity);
+}
+
 async function getJoinMap(prisma, userId, activityIds) {
   if (!userId || activityIds.length === 0) {
     return new Map();
@@ -117,9 +145,47 @@ function formatActivity(activity, joinStatus = null) {
   };
 }
 
+function normalizeActivityData(data) {
+  return {
+    ...(data.title !== undefined && { title: data.title }),
+    ...(data.description !== undefined && { description: data.description }),
+    ...(data.imageUrl !== undefined && { imageUrl: data.imageUrl || null }),
+    ...(data.status !== undefined && { status: data.status }),
+    ...(data.startAt !== undefined && { startAt: data.startAt ? new Date(data.startAt) : null }),
+    ...(data.endAt !== undefined && { endAt: data.endAt ? new Date(data.endAt) : null }),
+    ...(data.capacity !== undefined && { capacity: data.capacity || null }),
+  };
+}
+
+async function notifyActivityParticipants(prisma, activity, status) {
+  const joins = await prisma.activityJoin.findMany({
+    where: { activityId: activity.id, status: { in: ['approved', 'waitlist'] } },
+    select: { userId: true },
+  });
+
+  await Promise.all(joins.map((join) => notificationService.createNotification(join.userId, {
+    type: 'activity',
+    title: '活动状态更新',
+    body: `${activity.title} 已更新为 ${status}`,
+    data: { targetId: activity.id, targetType: 'activity', status },
+  })));
+}
+
+async function createActivityNotification(activity, operatorId, action) {
+  if (!operatorId) return;
+  await notificationService.createNotification(operatorId, {
+    type: 'system',
+    title: action === 'created' ? '活动已创建' : '活动已更新',
+    body: activity.title,
+    data: { targetId: activity.id, targetType: 'activity', action },
+  }).catch(() => {});
+}
+
 module.exports = {
   listActivities,
   getActivityDetail,
   joinActivity,
   getJoinStatus,
+  createActivity,
+  updateActivity,
 };

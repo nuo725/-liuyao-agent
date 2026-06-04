@@ -619,6 +619,172 @@ async function search(query, type, page, pageSize) {
   };
 }
 
+async function listModerationQueue(type = 'all', page = 1, pageSize = 20) {
+  const prisma = getPrisma();
+  const skip = (page - 1) * pageSize;
+  const includePosts = type === 'all' || type === 'post';
+  const includeComments = type === 'all' || type === 'comment';
+  const includeReports = type === 'all' || type === 'report';
+
+  const [posts, comments, reports] = await Promise.all([
+    includePosts
+      ? prisma.communityPost.findMany({
+          where: { status: 'hidden' },
+          orderBy: { updatedAt: 'desc' },
+          include: {
+            author: { select: { id: true, username: true, avatarUrl: true } },
+            card: { select: { communitySafeContent: true, riskLevel: true } },
+          },
+        })
+      : [],
+    includeComments
+      ? prisma.comment.findMany({
+          where: { status: 'hidden' },
+          orderBy: { createdAt: 'desc' },
+          include: {
+            author: { select: { id: true, username: true, avatarUrl: true } },
+          },
+        })
+      : [],
+    includeReports
+      ? prisma.postReport.findMany({
+          where: { status: 'pending' },
+          orderBy: { createdAt: 'desc' },
+          include: {
+            reporter: { select: { id: true, username: true } },
+            post: {
+              include: {
+                author: { select: { id: true, username: true, avatarUrl: true } },
+                card: { select: { communitySafeContent: true, riskLevel: true } },
+              },
+            },
+          },
+        })
+      : [],
+  ]);
+
+  const items = [
+    ...posts.map((post) => ({
+      type: 'post',
+      targetType: 'community_post',
+      targetId: post.id,
+      status: post.status,
+      content: formatFeedItem(post, {}),
+      createdAt: post.createdAt,
+      updatedAt: post.updatedAt,
+    })),
+    ...comments.map((comment) => ({
+      type: 'comment',
+      targetType: 'comment',
+      targetId: comment.id,
+      status: comment.status,
+      content: {
+        id: comment.id,
+        postId: comment.postId,
+        text: comment.text,
+        authorId: comment.authorId,
+        authorUsername: comment.author?.username,
+      },
+      createdAt: comment.createdAt,
+    })),
+    ...reports.map((report) => ({
+      type: 'report',
+      targetType: 'post_report',
+      targetId: report.id,
+      status: report.status,
+      reason: report.reason,
+      detail: report.detail,
+      reporter: report.reporter,
+      content: report.post ? formatFeedItem(report.post, {}) : null,
+      createdAt: report.createdAt,
+    })),
+  ].sort((a, b) => new Date(b.createdAt || b.updatedAt) - new Date(a.createdAt || a.updatedAt));
+
+  const paged = items.slice(skip, skip + pageSize);
+  return {
+    items: paged,
+    total: items.length,
+    hasMore: skip + paged.length < items.length,
+    nextPage: skip + paged.length < items.length ? page + 1 : null,
+  };
+}
+
+async function handleModerationTarget(operatorId, targetType, targetId, decision, reason) {
+  const prisma = getPrisma();
+
+  if (targetType === 'community_post') {
+    const status = decision === 'approve' ? 'published' : decision === 'remove' ? 'removed' : 'hidden';
+    const post = await prisma.communityPost.update({
+      where: { id: targetId },
+      data: { status },
+    }).catch(() => null);
+    if (!post) throw ApiError.notFound('Post not found');
+  } else if (targetType === 'comment') {
+    const comment = await prisma.comment.findUnique({ where: { id: targetId } });
+    if (!comment) throw ApiError.notFound('Comment not found');
+    const nextStatus = decision === 'approve' ? 'visible' : 'hidden';
+    await prisma.comment.update({
+      where: { id: targetId },
+      data: { status: nextStatus },
+    });
+    if (comment.status !== 'visible' && nextStatus === 'visible') {
+      const post = await prisma.communityPost.findUnique({ where: { id: comment.postId } });
+      if (post) {
+        const metrics = typeof post.metrics === 'object' ? post.metrics : {};
+        await prisma.communityPost.update({
+          where: { id: post.id },
+          data: { metrics: { ...metrics, comments: (metrics.comments || 0) + 1 } },
+        });
+      }
+    }
+  } else {
+    throw ApiError.badRequest('Unsupported moderation target type');
+  }
+
+  await prisma.moderationRecord.create({
+    data: {
+      targetType,
+      targetId,
+      decision: decision === 'dismiss' ? 'approve' : decision,
+      reason: reason || null,
+      operator: operatorId,
+    },
+  });
+
+  return { targetType, targetId, decision, handled: true };
+}
+
+async function handleReport(operatorId, reportId, decision, reason) {
+  const prisma = getPrisma();
+  const report = await prisma.postReport.findUnique({ where: { id: reportId } });
+  if (!report) {
+    throw ApiError.notFound('Report not found');
+  }
+
+  if (decision === 'remove') {
+    await handleModerationTarget(operatorId, 'community_post', report.postId, 'remove', reason || 'Removed after report');
+  } else if (decision === 'limit' || decision === 'warn') {
+    await handleModerationTarget(operatorId, 'community_post', report.postId, 'limit', reason || 'Limited after report');
+  }
+
+  await prisma.postReport.update({
+    where: { id: reportId },
+    data: { status: decision === 'dismiss' ? 'dismissed' : 'reviewed' },
+  });
+
+  await prisma.moderationRecord.create({
+    data: {
+      targetType: 'post_report',
+      targetId: reportId,
+      decision: decision === 'dismiss' ? 'approve' : decision === 'remove' ? 'remove' : 'limit',
+      reason: reason || null,
+      operator: operatorId,
+    },
+  });
+
+  return { reportId, decision, handled: true };
+}
+
 // ─────────────── Helpers ───────────────
 
 function formatFeedItem(post, viewerState) {
@@ -700,4 +866,7 @@ module.exports = {
   blockUser,
   unblockUser,
   search,
+  listModerationQueue,
+  handleModerationTarget,
+  handleReport,
 };

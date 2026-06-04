@@ -346,6 +346,62 @@ async function getShareCard(userId) {
   };
 }
 
+async function getPublicProfile(shortId, viewerId = null) {
+  const prisma = getPrisma();
+  const user = await prisma.user.findUnique({
+    where: { shortId },
+    include: { profileSettings: true },
+  });
+
+  if (!user || user.status === 'deleted') {
+    throw ApiError.notFound('Profile not found');
+  }
+
+  const isOwner = viewerId === user.id;
+  if (!isOwner && user.profileSettings && user.profileSettings.publicProfile === false) {
+    throw ApiError.notFound('Profile not found');
+  }
+
+  const [postCount, followerCount, posts] = await Promise.all([
+    prisma.communityPost.count({ where: { authorId: user.id, status: 'published' } }),
+    prisma.userFollow.count({ where: { followingId: user.id } }),
+    prisma.communityPost.findMany({
+      where: { authorId: user.id, status: 'published' },
+      orderBy: { createdAt: 'desc' },
+      take: 10,
+      select: {
+        id: true,
+        shareText: true,
+        coverImageUrl: true,
+        createdAt: true,
+        metrics: true,
+      },
+    }),
+  ]);
+
+  return {
+    id: user.id,
+    username: user.username,
+    bio: user.bio,
+    avatarUrl: user.avatarUrl,
+    coverUrl: user.coverUrl,
+    shortId: user.shortId,
+    shareUrl: `/profile/${user.shortId}`,
+    postCount,
+    followerCount,
+    posts: posts.map((post) => ({
+      id: post.id,
+      shareText: post.shareText,
+      coverImageUrl: post.coverImageUrl,
+      createdAt: post.createdAt,
+      metrics: post.metrics,
+    })),
+    viewerState: {
+      isOwner,
+    },
+  };
+}
+
 async function updateProfileMedia(userId, mediaId, purpose) {
   const prisma = getPrisma();
   const media = await prisma.mediaAsset.findFirst({
@@ -406,4 +462,5 @@ module.exports = {
   updateAvatar,
   updateCover,
   getShareCard,
+  getPublicProfile,
 };

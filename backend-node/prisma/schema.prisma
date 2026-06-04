@@ -17,6 +17,12 @@ enum UserStatus {
   deleted
 }
 
+enum UserRole {
+  user
+  operator
+  admin
+}
+
 enum Gender {
   male
   female
@@ -171,6 +177,7 @@ model User {
   city      String     @default("")
   gender    Gender     @default(not_disclosed)
   birthday  DateTime?
+  role      UserRole   @default(user)
   status    UserStatus @default(active)
   shortId   String     @unique @map("short_id")
   createdAt DateTime   @default(now()) @map("created_at")
@@ -715,6 +722,31 @@ model DailyCompletion {
   @@unique([userId, dateKey])
   @@index([dateKey])
   @@map("daily_completions")
+}
+
+model AnalyticsEvent {
+  id        String   @id @default(cuid())
+  userId    String?  @map("user_id")
+  eventName String   @map("event_name")
+  payload   Json     @default("{}")
+  clientInfo Json?   @map("client_info")
+  occurredAt DateTime @default(now()) @map("occurred_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([eventName, occurredAt])
+  @@index([userId, occurredAt])
+  @@map("analytics_events")
+}
+
+model WeeklyMetric {
+  id        String   @id @default(cuid())
+  weekKey   String   @unique @map("week_key")
+  wmru      Int      @default(0)
+  payload   Json     @default("{}")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("weekly_metrics")
 }
 
 // ─────────────── Infrastructure ───────────────

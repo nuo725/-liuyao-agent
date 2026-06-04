@@ -4,12 +4,45 @@
 const { Router } = require('express');
 const { ok } = require('../../shared/response');
 const { validate } = require('../../middleware/validate');
-const { requireAuth, optionalAuth } = require('../../middleware/auth');
+const { requireAuth, optionalAuth, requireRole } = require('../../middleware/auth');
 const { idempotency } = require('../../middleware/idempotency');
 const communityService = require('./service');
 const schemas = require('./schema');
 
 const router = Router();
+
+// GET /admin/moderation - Minimal moderation queue
+router.get('/admin/moderation', requireAuth, requireRole(['operator', 'admin']), validate(schemas.moderationQueueSchema, 'query'), async (req, res, next) => {
+  try {
+    const { type, page, pageSize } = req.validated.query;
+    const result = await communityService.listModerationQueue(type, page, pageSize);
+    res.json(ok(result));
+  } catch (err) {
+    next(err);
+  }
+});
+
+// POST /admin/moderation/:targetType/:targetId - Handle auto-moderation target
+router.post('/admin/moderation/:targetType/:targetId', requireAuth, requireRole(['operator', 'admin']), validate(schemas.moderationDecisionSchema), async (req, res, next) => {
+  try {
+    const { decision, reason } = req.validated.body;
+    const result = await communityService.handleModerationTarget(req.userId, req.params.targetType, req.params.targetId, decision, reason);
+    res.json(ok(result));
+  } catch (err) {
+    next(err);
+  }
+});
+
+// POST /admin/reports/:reportId - Handle user report
+router.post('/admin/reports/:reportId', requireAuth, requireRole(['operator', 'admin']), validate(schemas.moderationDecisionSchema), async (req, res, next) => {
+  try {
+    const { decision, reason } = req.validated.body;
+    const result = await communityService.handleReport(req.userId, req.params.reportId, decision, reason);
+    res.json(ok(result));
+  } catch (err) {
+    next(err);
+  }
+});
 
 // GET /feed - List feed by tab
 router.get('/feed', optionalAuth, validate(schemas.feedSchema, 'query'), async (req, res, next) => {

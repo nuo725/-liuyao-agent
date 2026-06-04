@@ -4,6 +4,7 @@
 
 const jwt = require('jsonwebtoken');
 const { getEnv } = require('../config/env');
+const { getPrisma } = require('../db/prisma');
 const { ApiError } = require('../shared/api-error');
 
 const DEMO_USER_ID = 'user_demo';
@@ -42,6 +43,32 @@ function requireAuth(req, res, next) {
   next();
 }
 
+function requireRole(roles) {
+  const allowedRoles = Array.isArray(roles) ? roles : [roles];
+  return async (req, res, next) => {
+    try {
+      if (!req.userId) {
+        throw ApiError.unauthorized();
+      }
+      const prisma = getPrisma();
+      const user = await prisma.user.findUnique({
+        where: { id: req.userId },
+        select: { role: true, status: true },
+      });
+      if (!user || user.status === 'deleted') {
+        throw ApiError.unauthorized('User not found or deleted');
+      }
+      if (!allowedRoles.includes(user.role)) {
+        throw ApiError.forbidden('Insufficient role');
+      }
+      req.userRole = user.role;
+      next();
+    } catch (err) {
+      next(err);
+    }
+  };
+}
+
 /**
  * Optional auth: attaches userId if token present, falls back to demo user.
  */
@@ -75,4 +102,4 @@ function generateTokens(userId) {
   return { accessToken, refreshToken, expiresAt, refreshExpiresAt };
 }
 
-module.exports = { requireAuth, optionalAuth, generateTokens, DEMO_USER_ID };
+module.exports = { requireAuth, optionalAuth, requireRole, generateTokens, DEMO_USER_ID };
