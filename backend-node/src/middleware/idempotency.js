@@ -25,7 +25,10 @@ function idempotency(req, res, next) {
     if (res.statusCode < 400) {
       _cache.set(cacheKey, { status: res.statusCode, body, timestamp: Date.now() });
       // Evict after 1 hour
-      setTimeout(() => _cache.delete(cacheKey), 3600_000);
+      const evictionTimer = setTimeout(() => _cache.delete(cacheKey), 3600_000);
+      if (typeof evictionTimer.unref === 'function') {
+        evictionTimer.unref();
+      }
     }
     return originalJson(body);
   };
