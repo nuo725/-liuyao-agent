@@ -240,7 +240,7 @@
 | ID | 验收项 | 状态 | 验收证据 | 当前缺口 |
 |----|--------|------|----------|----------|
 | CONTRACT-001 | 正式 API 口径决议 | ✅ 已完成 | `docs/api-contract-decision.md` | 决议保留 `/api/v1` 和 `success/data` 作为当前实现契约；未来如需 `/v1` 另开兼容层任务 |
-| DB-001 | Prisma migration 基线与回滚 | 🟡 部分完成 | `prisma/migrations/202606050001_initial_schema/migration.sql` + `docs/db-migration-baseline.md` + `test/unit/prisma-schema.test.js` | migration 基线已生成；已补 Prisma schema 验证测试（18 个测试覆盖 41 个模型、枚举、关系完整性和配置）；真实 `migrate deploy`、`seed`、恢复验证待 PostgreSQL 环境执行 |
+| DB-001 | Prisma migration 基线与回滚 | 🟡 部分完成 | `prisma/migrations/202606050001_initial_schema/migration.sql` + `prisma/migrations/202606050002_rate_limit_buckets/migration.sql` + `docs/db-migration-baseline.md` + `test/unit/prisma-schema.test.js` + `test/unit/migration-validation.test.js` | migration 基线已生成（2 个 migration 文件）；已补 Prisma schema 验证测试（18 个测试覆盖 41 个模型、枚举、关系完整性和配置）和 migration SQL 验证测试（26 个测试覆盖 41 个表、24 个枚举、外键完整性、索引覆盖、schema 一致性）；真实 `migrate deploy`、`seed`、恢复验证待 PostgreSQL 环境执行 |
 | RATE-001 | 生产级敏感接口限流策略 | ✅ 已完成 | `RateLimitBucket` + `202606050002_rate_limit_buckets` + `docs/rate-limit-strategy.md` + `test/unit/rate-limit.test.js` | 生产要求 `RATE_LIMIT_STORE=database`；真实表创建随 DB-001 deploy 执行 |
 | AGENT-001 | 独立 Agent 接入边界与联调计划 | ✅ 已完成 | `docs/agent-integration-boundary.md` | 已明确业务后端与 Agent 的认证、请求/响应、超时、重试、降级、结果缓存、SSE relay 和后续联调计划；当前不实现生成能力 |
 | TEST-001 | API 集成测试主链路 | ✅ 已完成 | `test/integration/api-mainline.test.js` + `docs/api-integration-test-report.md` | 已覆盖登录、仪式、社区、通知、同频、活动、媒体、资料、额度和账单的 HTTP 主链路；service stub 隔离数据库，真实 DB 联调仍见 DB-001/FE-CONTRACT-001 |
@@ -248,8 +248,8 @@
 | OPS-VERIFY-001 | 备份恢复演练 | 🟡 脚本重构完成，真实演练待执行 | `scripts/db-backup.js` + `scripts/db-restore.js` + `test/unit/db-backup.test.js` + `test/unit/db-restore.test.js` + `test/unit/db-backup-restore-flow.test.js` | 已重构脚本为可测试模块，已补 27 个单元测试（含 9 个 dry-run 端到端流程测试覆盖 backup→restore 完整链路、格式检测、错误处理）；真实 PostgreSQL 演练待环境执行 |
 | OPS-VERIFY-002 | 性能压测报告 | 🟡 部分完成 | `scripts/perf-scenarios.js` + `docs/performance-verification.md` + `test/unit/perf-scenarios.test.js` + `test/unit/perf-integration.test.js` | 已扩展至 16 个场景覆盖所有主要模块；已补 mock HTTP server 集成测试（5 个测试验证全场景运行、结果结构、错误检测、环境变量跳过、动态路径）；真实预发布 P95/错误率报告待执行 |
 | OPS-VERIFY-003 | 监控 Dashboard 与告警联调 | 🟡 脚本增强完成，真实联调待执行 | `scripts/alert-check.js` + `test/unit/monitoring.test.js` | 已重构 alert-check 为可测试模块（`evaluateAlerts`/`buildAlertPayload`/`parseAlertArgs`/`runAlertCheck`），已补 webhook 投递测试（mock fetch 验证 payload 构建、dry-run 不发送）和参数解析测试；真实 Dashboard 截图/Webhook 告警记录待执行 |
-| FE-CONTRACT-001 | Flutter 主页面契约回归 | 🟡 部分完成 | `test/integration/api-mainline.test.js` + `test/contract/flutter-contract.test.js` | 已扩展 API 主链路集成测试至 9 个测试用例，新增通知读取/全部已读/删除、社区关注/屏蔽/举报、仪式恢复/追问/历史、社区点赞/收藏/评论/搜索、资料设置/签到/匿名、错误 envelope 覆盖；service stub 隔离数据库；真实 Flutter 联调仍需 PostgreSQL + `RUN_CONTRACT_DB=1` |
-| ADAPTER-001 | 生产外部服务适配验收 | 🟡 部分完成 | `scripts/adapter-check.js` + `docs/adapter-readiness.md` + `test/unit/adapter-check.test.js` + `test/unit/adapter-mock.test.js` | 已补 22 个 adapter mock 集成测试覆盖 SMS 提供商边界、社交登录一致性、推送适配器检测、支付回调验签、对象存储凭证和 Agent 服务边界；真实 provider 回归记录待外部环境执行 |
+| FE-CONTRACT-001 | Flutter 主页面契约回归 | 🟡 部分完成 | `test/integration/api-mainline.test.js` + `test/contract/flutter-contract.test.js` | 已扩展 API 主链路集成测试至 20 个测试用例，新增通知读取/全部已读/删除、社区关注/屏蔽/举报、仪式恢复/追问/历史、社区点赞/收藏/评论/搜索、资料设置/签到/匿名、错误 envelope、认证拒绝、请求体校验、健康检查、指标端点、X-Request-Id、envelope 一致性覆盖；service stub 隔离数据库；真实 Flutter 联调仍需 PostgreSQL + `RUN_CONTRACT_DB=1` |
+| ADAPTER-001 | 生产外部服务适配验收 | 🟡 部分完成 | `scripts/adapter-check.js` + `docs/adapter-readiness.md` + `test/unit/adapter-check.test.js` + `test/unit/adapter-mock.test.js` + `test/unit/adapter-error-scenarios.test.js` | 已补 22 个 adapter mock 集成测试覆盖 SMS 提供商边界、社交登录一致性、推送适配器检测、支付回调验签、对象存储凭证和 Agent 服务边界；已补 17 个 adapter 错误场景测试覆盖超时处理、重试逻辑、无效响应、部分失败、熔断模式、降级行为、输入校验；真实 provider 回归记录待外部环境执行 |
 
 **上线验收进度：5/11**
 
@@ -309,6 +309,7 @@ backend-node/
 │       ├── security-check.test.js              # 运维安全检查脚本测试
 │       ├── adapter-check.test.js               # 外部服务适配检查脚本测试
 │       ├── adapter-mock.test.js                # 外部适配器 mock 集成测试
+│       ├── adapter-error-scenarios.test.js     # 适配器错误场景测试
 │       ├── perf-smoke.test.js                  # 性能统计脚本测试
 │       ├── perf-scenarios.test.js              # 性能场景 runner 测试
 │       ├── perf-integration.test.js            # 性能场景 mock HTTP 集成测试
@@ -316,6 +317,7 @@ backend-node/
 │       ├── rate-limit.test.js                  # 敏感接口限流策略测试
 │       ├── security-mainline.test.js           # 安全主链路回归测试
 │       ├── prisma-schema.test.js               # Prisma schema 验证测试
+│       ├── migration-validation.test.js        # Migration SQL 验证测试
 │       ├── db-backup.test.js                   # 数据库备份脚本单元测试
 │       ├── db-restore.test.js                  # 数据库恢复脚本单元测试
 │       ├── db-backup-restore-flow.test.js      # 备份恢复 dry-run 流程测试
@@ -395,6 +397,7 @@ backend-node/
 | 日期 | 内容 |
 |------|------|
 | 2026-06-05 | 本轮验收推进：新增 `test/unit/prisma-schema.test.js`（18 个 Prisma schema 验证测试）、`test/unit/db-backup-restore-flow.test.js`（9 个 dry-run 端到端测试）、`test/unit/perf-integration.test.js`（5 个 mock HTTP 集成测试）、`test/unit/adapter-mock.test.js`（22 个 adapter 边界测试）；扩展 `test/integration/api-mainline.test.js` 新增 6 个流程测试（通知读取/删除、社区关注/举报、仪式恢复/追问、社区点赞/评论/搜索、资料签到/匿名、错误 envelope）；总测试数从 78 增至 141；DB-001/OPS-VERIFY-001/002/FE-CONTRACT-001/ADAPTER-001 更新验收证据 |
+| 2026-06-05 | 本轮验收推进：新增 `test/unit/migration-validation.test.js`（26 个 migration SQL 验证测试覆盖 41 个表、24 个枚举、外键完整性、索引覆盖、schema 一致性）、`test/unit/adapter-error-scenarios.test.js`（17 个适配器错误场景测试覆盖超时/重试/无效响应/部分失败/熔断/降级/输入校验）；扩展 `test/integration/api-mainline.test.js` 新增 11 个边界测试（认证拒绝、无效 token、请求体校验、404 处理、健康检查、指标端点、X-Request-Id、envelope 一致性）；总测试数从 141 增至 195；DB-001/FE-CONTRACT-001/ADAPTER-001 更新验收证据 |
 | 2026-06-05 | 本轮验收推进：重构 `db-backup.js`/`db-restore.js`/`alert-check.js`/`data-deletion.js` 为可测试模块，新增 `test/unit/db-backup.test.js`（6 个测试）、`test/unit/db-restore.test.js`（7 个测试）、`test/unit/data-deletion.test.js`（7 个测试），扩展 `monitoring.test.js` 新增 webhook 投递和参数解析测试（+8 个测试），扩展 `perf-scenarios.js` 至 16 个场景覆盖所有主要模块；OPS-VERIFY-001 标为部分完成、OPS-VERIFY-003 标为部分完成、OPS-VERIFY-002 场景扩展；真实演练仍待 PostgreSQL 环境执行 |
 | 2026-06-05 | 本轮验收推进：OPS-VERIFY-002 标为部分完成，新增 `scripts/perf-scenarios.js`、`test/unit/perf-scenarios.test.js` 与 `docs/performance-verification.md`，补 Feed/帖子详情/评论创建/仪式创建压测场景；真实预发布报告仍待执行 |
 | 2026-06-05 | 本轮验收推进：ADAPTER-001 标为部分完成，新增 `scripts/adapter-check.js`、`test/unit/adapter-check.test.js` 与 `docs/adapter-readiness.md`，补生产/预发布外部服务配置检查门禁；真实 provider 回归记录仍待执行 |
