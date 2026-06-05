@@ -356,6 +356,9 @@ backend-node/
 │       ├── idempotency.test.js                 # 幂等中间件测试
 │       ├── error-handler.test.js               # 错误处理中间件测试
 │       ├── auth-middleware.test.js              # 认证中间件测试
+│       ├── request-id.test.js                  # 请求 ID 中间件测试
+│       ├── validate-middleware.test.js          # 校验中间件测试
+│       ├── logger.test.js                      # 日志模块测试
 │       ├── db-backup.test.js                   # 数据库备份脚本单元测试
 │       ├── db-restore.test.js                  # 数据库恢复脚本单元测试
 │       ├── db-backup-restore-flow.test.js      # 备份恢复 dry-run 流程测试
@@ -442,6 +445,7 @@ backend-node/
 | 2026-06-05 | 本轮验收推进：新增 `test/unit/api-error.test.js`（20 个 API 错误模块测试覆盖构造函数、所有工厂方法、错误码一致性、自定义消息）、`test/unit/response.test.js`（9 个响应模块测试覆盖 ok/fail envelope、JSON 序列化）、`test/unit/middleware.test.js`（12 个中间件测试覆盖 validate 校验、request-id 生成与传递）；总测试数从 535 增至 576 |
 | 2026-06-05 | 本轮验收推进：新增 `test/unit/idempotency.test.js`（6 个幂等中间件测试覆盖无 key 跳过、GET 跳过、首次处理、重复返回缓存、错误不缓存、匿名用户）、`test/unit/error-handler.test.js`（8 个错误处理中间件测试覆盖所有 ApiError 类型、意外错误 500、requestId 传递）；总测试数从 576 增至 590 |
 | 2026-06-05 | 本轮验收推进：新增 `test/unit/auth-middleware.test.js`（18 个认证中间件测试覆盖 requireAuth（有效 token、无 header、空 header、过期 token、无效 token、无 Bearer 前缀）、optionalAuth（有效 token、无 token 降级、无效 token 降级、过期 token 降级）、generateTokens（token 生成、userId 包含、refresh 类型、过期时间））；总测试数从 590 增至 608 |
+| 2026-06-05 | 本轮验收推进：新增 `test/unit/request-id.test.js`（6 个请求 ID 中间件测试覆盖 req_ 前缀、自定义 header、响应头设置、唯一性、next 调用、长度）、`test/unit/validate-middleware.test.js`（9 个校验中间件测试覆盖 body/query/params 校验、必填字段、validated 对象管理）、`test/unit/logger.test.js`（5 个日志模块测试覆盖实例创建、info/error/warn/debug 方法、模块名）；总测试数从 608 增至 628 |
 | 2026-06-05 | 本轮验收收敛：新增 `scripts/acceptance-gate.js`、`test/unit/acceptance-gate.test.js` 和 `npm run ops:acceptance-gate`，组合执行 preflight、证据状态和 seal 验签的最终发布门禁；同步将 gate 纳入 `scripts/acceptance-preflight.js` 检查，并更新 `docs/release-acceptance-runbook.md`；上线验收进度保持 5/11 |
 | 2026-06-05 | 本轮验收收敛：扩展 `scripts/acceptance-preflight.js` 和 `test/unit/acceptance-preflight.test.js`，将 `scripts/acceptance-seal.js` 与 `npm run ops:acceptance-seal` 纳入外部验收前本地预检查，避免证据包封存能力漏检；上线验收进度保持 5/11 |
 | 2026-06-05 | 本轮验收收敛：新增 `scripts/acceptance-seal.js`、`test/unit/acceptance-seal.test.js` 和 `npm run ops:acceptance-seal`，可对验收证据包生成 `acceptance-seal.json` SHA-256 封存文件，并支持后续 verify 检测证据包是否被改动；同步更新 `docs/release-acceptance-runbook.md`；上线验收进度保持 5/11 |
