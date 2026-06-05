@@ -196,6 +196,18 @@ Generate templates for every remaining item:
 npm run ops:acceptance-evidence -- --environment=staging --commit=<commit-sha>
 ```
 
+Validate a completed evidence Markdown file before marking an item done:
+
+```powershell
+npm run ops:acceptance-evidence:check -- --file=<evidence.md> --item=DB-001 --require-pass=1
+```
+
+Validate the full remaining-item evidence bundle:
+
+```powershell
+npm run ops:acceptance-evidence:check -- --file=<evidence.md> --require-pass=1
+```
+
 Use this format in `PROGRESS.md` update notes or release notes:
 
 ```text
