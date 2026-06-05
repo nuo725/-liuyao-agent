@@ -240,7 +240,7 @@
 | ID | 验收项 | 状态 | 验收证据 | 当前缺口 |
 |----|--------|------|----------|----------|
 | CONTRACT-001 | 正式 API 口径决议 | ✅ 已完成 | `docs/api-contract-decision.md` | 决议保留 `/api/v1` 和 `success/data` 作为当前实现契约；未来如需 `/v1` 另开兼容层任务 |
-| DB-001 | Prisma migration 基线与回滚 | 🟡 部分完成 | `prisma/migrations/202606050001_initial_schema/migration.sql` + `prisma/migrations/202606050002_rate_limit_buckets/migration.sql` + `docs/db-migration-baseline.md` + `test/unit/prisma-schema.test.js` + `test/unit/migration-validation.test.js` + `test/unit/seed-validation.test.js` | migration 基线已生成（2 个 migration 文件）；已补 Prisma schema 验证测试（18 个测试）、migration SQL 验证测试（26 个测试）和 seed 脚本验证测试（29 个测试覆盖实体覆盖、数据完整性、幂等操作）；真实 `migrate deploy`、`seed`、恢复验证待 PostgreSQL 环境执行 |
+| DB-001 | Prisma migration 基线与回滚 | 🟡 部分完成 | `prisma/migrations/202606050001_initial_schema/migration.sql` + `prisma/migrations/202606050002_rate_limit_buckets/migration.sql` + `docs/db-migration-baseline.md` + `test/unit/prisma-schema.test.js` + `test/unit/migration-validation.test.js` + `test/unit/seed-validation.test.js` + `test/unit/db-verification-queries.test.js` | migration 基线已生成（2 个 migration 文件）；已补 Prisma schema 验证测试（18 个测试）、migration SQL 验证测试（26 个测试）、seed 脚本验证测试（29 个测试）和 DB 验证查询测试（20 个测试覆盖 migration 验证、seed 验证、数据完整性检查）；真实 `migrate deploy`、`seed`、恢复验证待 PostgreSQL 环境执行 |
 | RATE-001 | 生产级敏感接口限流策略 | ✅ 已完成 | `RateLimitBucket` + `202606050002_rate_limit_buckets` + `docs/rate-limit-strategy.md` + `test/unit/rate-limit.test.js` | 生产要求 `RATE_LIMIT_STORE=database`；真实表创建随 DB-001 deploy 执行 |
 | AGENT-001 | 独立 Agent 接入边界与联调计划 | ✅ 已完成 | `docs/agent-integration-boundary.md` | 已明确业务后端与 Agent 的认证、请求/响应、超时、重试、降级、结果缓存、SSE relay 和后续联调计划；当前不实现生成能力 |
 | TEST-001 | API 集成测试主链路 | ✅ 已完成 | `test/integration/api-mainline.test.js` + `docs/api-integration-test-report.md` | 已覆盖登录、仪式、社区、通知、同频、活动、媒体、资料、额度和账单的 HTTP 主链路；service stub 隔离数据库，真实 DB 联调仍见 DB-001/FE-CONTRACT-001 |
@@ -337,10 +337,13 @@ backend-node/
 │       ├── prisma-schema.test.js               # Prisma schema 验证测试
 │       ├── migration-validation.test.js        # Migration SQL 验证测试
 │       ├── seed-validation.test.js             # Seed 脚本验证测试
+│       ├── db-verification-queries.test.js     # DB 验证查询测试
 │       ├── backup-manifest.test.js             # 备份 manifest 验证测试
 │       ├── perf-report.test.js                 # 性能报告生成测试
 │       ├── monitoring-validation.test.js       # 监控指标验证测试
 │       ├── openapi-compliance.test.js          # OpenAPI 合规测试
+│       ├── acceptance-flow.test.js             # 验收流程端到端测试
+│       ├── npm-scripts.test.js                 # npm scripts 验证测试
 │       ├── db-backup.test.js                   # 数据库备份脚本单元测试
 │       ├── db-restore.test.js                  # 数据库恢复脚本单元测试
 │       ├── db-backup-restore-flow.test.js      # 备份恢复 dry-run 流程测试
@@ -420,6 +423,7 @@ backend-node/
 | 日期 | 内容 |
 |------|------|
 | 2026-06-05 | 本轮验收推进：新增 `test/unit/seed-validation.test.js`（29 个 seed 脚本验证测试覆盖实体覆盖、数据完整性、幂等操作）、`test/unit/backup-manifest.test.js`（13 个备份 manifest 验证测试）、`test/unit/perf-report.test.js`（14 个性能报告生成测试）、`test/unit/monitoring-validation.test.js`（16 个监控指标验证测试）、`test/unit/openapi-compliance.test.js`（26 个 OpenAPI 合规测试）；总测试数从 195 增至 336；DB-001/OPS-VERIFY-001~003/FE-CONTRACT-001 更新验收证据 |
+| 2026-06-05 | 本轮验收推进：新增 `test/unit/db-verification-queries.test.js`（20 个 DB 验证查询测试覆盖 migration 验证、seed 验证、数据完整性检查）、`test/unit/acceptance-flow.test.js`（25 个验收流程端到端测试覆盖脚本存在性、npm scripts、文档完整性、OpenAPI spec、Prisma schema、CI 配置、Docker 配置）、`test/unit/npm-scripts.test.js`（27 个 npm scripts 验证测试覆盖脚本定义、目标文件存在性、依赖完整性、包元数据）；总测试数从 336 增至 408；DB-001 更新验收证据 |
 | 2026-06-05 | 本轮验收收敛：新增 `scripts/acceptance-gate.js`、`test/unit/acceptance-gate.test.js` 和 `npm run ops:acceptance-gate`，组合执行 preflight、证据状态和 seal 验签的最终发布门禁；同步将 gate 纳入 `scripts/acceptance-preflight.js` 检查，并更新 `docs/release-acceptance-runbook.md`；上线验收进度保持 5/11 |
 | 2026-06-05 | 本轮验收收敛：扩展 `scripts/acceptance-preflight.js` 和 `test/unit/acceptance-preflight.test.js`，将 `scripts/acceptance-seal.js` 与 `npm run ops:acceptance-seal` 纳入外部验收前本地预检查，避免证据包封存能力漏检；上线验收进度保持 5/11 |
 | 2026-06-05 | 本轮验收收敛：新增 `scripts/acceptance-seal.js`、`test/unit/acceptance-seal.test.js` 和 `npm run ops:acceptance-seal`，可对验收证据包生成 `acceptance-seal.json` SHA-256 封存文件，并支持后续 verify 检测证据包是否被改动；同步更新 `docs/release-acceptance-runbook.md`；上线验收进度保持 5/11 |
