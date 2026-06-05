@@ -182,6 +182,16 @@ Completion rule:
 
 This item completes only after provider request IDs or staging logs are attached. Passing `ops:adapter-check` alone is partial evidence.
 
+## Traceability
+
+Before changing release acceptance scope or completion counts, check:
+
+```text
+docs/acceptance-traceability.md
+```
+
+The traceability table maps every acceptance ID in `PROGRESS.md` to `BACKEND_TDL_AND_DELIVERY_PLAN.md` and `PRODUCT_PRD.md`.
+
 ## Reporting Template
 
 Generate a Markdown evidence template:
