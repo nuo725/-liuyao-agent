@@ -194,6 +194,18 @@ The traceability table maps every acceptance ID in `PROGRESS.md` to `BACKEND_TDL
 
 ## Reporting Template
 
+Run local preflight before creating or filling an evidence package:
+
+```powershell
+npm run ops:acceptance-preflight
+```
+
+Use JSON output when attaching the preflight result to release automation:
+
+```powershell
+npm run ops:acceptance-preflight -- --format=json
+```
+
 Generate a Markdown evidence template:
 
 ```powershell
