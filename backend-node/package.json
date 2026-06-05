@@ -22,6 +22,7 @@
     "ops:security-check": "node scripts/security-check.js",
     "ops:adapter-check": "node scripts/adapter-check.js",
     "ops:perf-smoke": "node scripts/perf-smoke.js",
+    "ops:perf-scenarios": "node scripts/perf-scenarios.js",
     "ops:alert-check": "node scripts/alert-check.js",
     "ops:data-export": "node scripts/data-deletion.js --action=export",
     "ops:data-delete": "node scripts/data-deletion.js --action=delete --confirm",

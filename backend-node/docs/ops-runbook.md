@@ -69,6 +69,14 @@ The command prints total requests, failures, status code distribution, average l
 npm run ops:perf-smoke -- --url=https://api.example.com/api/v1/health --requests=500 --concurrency=25 --maxP95Ms=800 --maxErrorRate=0.01
 ```
 
+For mainline staging scenarios, use:
+
+```powershell
+npm run ops:perf-scenarios -- --baseUrl=https://api.example.com --requests=500 --concurrency=25 --maxP95Ms=800 --maxErrorRate=0.01
+```
+
+Set `PERF_AUTH_TOKEN` and `PERF_POST_ID` before running write/detail scenarios. See `docs/performance-verification.md` for the required evidence format.
+
 ## Monitoring and alerts
 
 The backend exposes:

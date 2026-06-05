@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* global AbortController, clearTimeout */
 
 const { performance } = require('perf_hooks');
 
@@ -7,6 +8,8 @@ async function runLoadTest({
   requests = 100,
   concurrency = 10,
   method = 'GET',
+  headers = {},
+  body,
   timeoutMs = 5000,
   maxP95Ms = 1000,
   maxErrorRate = 0.01,
@@ -17,7 +20,7 @@ async function runLoadTest({
   async function worker() {
     while (nextIndex < requests) {
       nextIndex += 1;
-      results.push(await runOne({ url, method, timeoutMs }));
+      results.push(await runOne({ url, method, headers, body, timeoutMs }));
     }
   }
 
@@ -29,12 +32,24 @@ async function runLoadTest({
   return summary;
 }
 
-async function runOne({ url, method, timeoutMs }) {
+async function runOne({ url, method, headers, body, timeoutMs }) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
   const started = performance.now();
   try {
-    const response = await fetch(url, { method, signal: controller.signal });
+    const request = {
+      method,
+      headers,
+      signal: controller.signal,
+    };
+    if (body !== undefined && !['GET', 'HEAD'].includes(method)) {
+      request.body = typeof body === 'string' ? body : JSON.stringify(body);
+      request.headers = {
+        'Content-Type': 'application/json',
+        ...headers,
+      };
+    }
+    const response = await fetch(url, request);
     return {
       ok: response.status < 500,
       status: response.status,
@@ -96,11 +111,22 @@ function parseArgs(argv) {
     url: values.url || 'http://127.0.0.1:3000/api/v1/health',
     requests: Number(values.requests || 100),
     concurrency: Number(values.concurrency || 10),
-    method: values.method || 'GET',
+    method: String(values.method || 'GET').toUpperCase(),
+    headers: parseJsonArg(values.headers, {}),
+    body: values.body ? parseJsonArg(values.body, values.body) : undefined,
     timeoutMs: Number(values.timeoutMs || 5000),
     maxP95Ms: Number(values.maxP95Ms || 1000),
     maxErrorRate: Number(values.maxErrorRate || 0.01),
   };
+}
+
+function parseJsonArg(value, fallback) {
+  if (!value) return fallback;
+  try {
+    return JSON.parse(value);
+  } catch {
+    return fallback;
+  }
 }
 
 if (require.main === module) {
@@ -118,4 +144,5 @@ if (require.main === module) {
 module.exports = {
   summarizeResults,
   runLoadTest,
+  parseArgs,
 };

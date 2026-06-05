@@ -246,7 +246,7 @@
 | TEST-001 | API 集成测试主链路 | ✅ 已完成 | `test/integration/api-mainline.test.js` + `docs/api-integration-test-report.md` | 已覆盖登录、仪式、社区、通知、同频、活动、媒体、资料、额度和账单的 HTTP 主链路；service stub 隔离数据库，真实 DB 联调仍见 DB-001/FE-CONTRACT-001 |
 | TEST-002 | 安全测试主链路 | ✅ 已完成 | `test/unit/security-mainline.test.js` + `docs/security-test-report.md` | 已覆盖无 Token、过期 Token、越权、Idempotency 重放、非法上传、私密内容不外泄、审核绕过和高风险卡片限制 |
 | OPS-VERIFY-001 | 备份恢复演练 | 🔲 未开始 | 预发布数据库备份文件、恢复命令、恢复后校验记录 | 当前只有 dry-run 脚本 |
-| OPS-VERIFY-002 | 性能压测报告 | 🔲 未开始 | Feed、帖子详情、评论创建、仪式会话创建的 P95 与错误率报告 | 当前只有压测脚本 |
+| OPS-VERIFY-002 | 性能压测报告 | 🟡 部分完成 | `scripts/perf-scenarios.js` + `docs/performance-verification.md` + `test/unit/perf-scenarios.test.js` | 已补 Feed、帖子详情、评论创建、仪式创建场景 runner；真实预发布 P95/错误率报告待执行 |
 | OPS-VERIFY-003 | 监控 Dashboard 与告警联调 | 🔲 未开始 | Dashboard 截图/链接、错误率和延迟告警触发记录、Webhook 记录 | 当前只有 `/metrics` 与 alert-check 脚本 |
 | FE-CONTRACT-001 | Flutter 主页面契约回归 | 🔲 未开始 | 当前 Flutter 页面 Auth→Profile→Ritual→Community→Notification→Match→Activity 的真实后端联调记录 | 契约测试骨架已存在，默认跳过；真实执行需 PostgreSQL + `RUN_CONTRACT_DB=1` |
 | ADAPTER-001 | 生产外部服务适配验收 | 🟡 部分完成 | `scripts/adapter-check.js` + `docs/adapter-readiness.md` + `test/unit/adapter-check.test.js` | 已补生产/预发布配置检查门禁；真实 SMS、微信/QQ、对象存储、Push、支付回调和 Agent provider 回归记录待外部环境执行 |
@@ -276,7 +276,8 @@ backend-node/
 │   ├── agent-integration-boundary.md           # 独立 Agent 接入边界与联调计划
 │   ├── security-test-report.md                 # 安全主链路自动化测试报告
 │   ├── api-integration-test-report.md          # API 主链路集成测试报告
-│   └── adapter-readiness.md                    # 外部服务适配配置检查与真实验收要求
+│   ├── adapter-readiness.md                    # 外部服务适配配置检查与真实验收要求
+│   └── performance-verification.md             # 性能压测场景与报告要求
 ├── openapi/
 │   └── openapi.yaml                            # OpenAPI 3.1 契约（全模块）
 ├── prisma/
@@ -292,6 +293,7 @@ backend-node/
 │   ├── security-check.js                       # 本地安全检查脚本
 │   ├── adapter-check.js                        # 外部服务适配配置检查脚本
 │   ├── perf-smoke.js                           # 性能 smoke test 脚本
+│   ├── perf-scenarios.js                       # 主链路性能压测场景脚本
 │   └── alert-check.js                          # 监控告警检查脚本
 ├── test/
 │   ├── helpers/
@@ -307,6 +309,7 @@ backend-node/
 │       ├── security-check.test.js              # 运维安全检查脚本测试
 │       ├── adapter-check.test.js               # 外部服务适配检查脚本测试
 │       ├── perf-smoke.test.js                  # 性能统计脚本测试
+│       ├── perf-scenarios.test.js              # 性能场景 runner 测试
 │       ├── monitoring.test.js                  # 运行指标与告警规则测试
 │       ├── rate-limit.test.js                  # 敏感接口限流策略测试
 │       └── security-mainline.test.js           # 安全主链路回归测试
@@ -368,7 +371,7 @@ backend-node/
 2. **FE-CONTRACT-001** → 用当前 Flutter 页面跑真实后端联调，形成契约回归记录。
 
 ### 优先级 P1（预发布演练）
-5. **OPS-VERIFY-001 ~ 003** → 预发布恢复演练、性能压测报告、Dashboard/告警联调记录。
+5. **OPS-VERIFY-001 ~ 003** → 预发布恢复演练、性能压测真实报告、Dashboard/告警联调记录；OPS-VERIFY-002 已具备场景 runner。
 6. **ADAPTER-001** → 已有配置检查门禁；继续补 SMS、社交登录、S3、Push、支付回调验签的生产/预发布真实回归记录。
 
 ### 已完成的边界决议
@@ -382,6 +385,7 @@ backend-node/
 
 | 日期 | 内容 |
 |------|------|
+| 2026-06-05 | 本轮验收推进：OPS-VERIFY-002 标为部分完成，新增 `scripts/perf-scenarios.js`、`test/unit/perf-scenarios.test.js` 与 `docs/performance-verification.md`，补 Feed/帖子详情/评论创建/仪式创建压测场景；真实预发布报告仍待执行 |
 | 2026-06-05 | 本轮验收推进：ADAPTER-001 标为部分完成，新增 `scripts/adapter-check.js`、`test/unit/adapter-check.test.js` 与 `docs/adapter-readiness.md`，补生产/预发布外部服务配置检查门禁；真实 provider 回归记录仍待执行 |
 | 2026-06-05 | 本轮验收推进：完成 TEST-001，新增 `test/integration/api-mainline.test.js` 与 `docs/api-integration-test-report.md`，覆盖 Auth/Profile/Credits/Billing/Media/Notifications/Ritual/Community/Match/Activities 的 HTTP 主链路；上线验收进度更新至 5/11 |
 | 2026-06-05 | 本轮验收推进：完成 TEST-002，新增 `test/unit/security-mainline.test.js` 与 `docs/security-test-report.md`，覆盖认证、越权、幂等、上传、隐私和审核绕过安全主链路；上线验收进度更新至 4/11 |
