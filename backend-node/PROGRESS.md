@@ -350,6 +350,9 @@ backend-node/
 │       ├── data-deletion-validation.test.js    # 数据删除验证测试
 │       ├── perf-smoke-validation.test.js       # 性能 smoke 验证测试
 │       ├── admin-routes.test.js                # Admin 路由测试
+│       ├── api-error.test.js                   # API 错误模块测试
+│       ├── response.test.js                    # 响应模块测试
+│       ├── middleware.test.js                   # 中间件测试
 │       ├── db-backup.test.js                   # 数据库备份脚本单元测试
 │       ├── db-restore.test.js                  # 数据库恢复脚本单元测试
 │       ├── db-backup-restore-flow.test.js      # 备份恢复 dry-run 流程测试
@@ -433,6 +436,7 @@ backend-node/
 | 2026-06-05 | 本轮验收推进：新增 `test/unit/feature-flags.test.js`（30 个 feature flags 测试覆盖所有标志定义、默认值、中文描述、运行时切换、环境变量覆盖、requireFeature 中间件）、`test/unit/security-expanded.test.js`（20 个扩展安全测试覆盖敏感文件保护、无硬编码密钥、环境变量校验、依赖安全、输入校验、认证安全、错误处理安全、日志安全）、`test/unit/monitoring-endpoints.test.js`（17 个监控端点测试覆盖指标快照结构、请求记录、路由跟踪、告警评估、payload 构建、参数解析）；总测试数从 408 增至 475；OPS-003/OPS-005/OPS-006 更新验收证据 |
 | 2026-06-05 | 本轮验收推进：新增 `test/unit/data-deletion-validation.test.js`（25 个数据删除验证测试覆盖手机号脱敏、删除操作排序、导出查询完整性、GDPR 合规）、`test/unit/perf-smoke-validation.test.js`（20 个性能 smoke 验证测试覆盖统计计算、百分位、参数解析、阈值验证、负载测试执行）；总测试数从 475 增至 520；OPS-004/OPS-007 更新验收证据 |
 | 2026-06-05 | 本轮验收推进：新增 `test/unit/admin-routes.test.js`（15 个 admin 路由测试覆盖 feature flags API 契约、请求校验、系统状态响应、管理员授权、响应 envelope）；总测试数从 520 增至 535；OPS-005 更新验收证据 |
+| 2026-06-05 | 本轮验收推进：新增 `test/unit/api-error.test.js`（20 个 API 错误模块测试覆盖构造函数、所有工厂方法、错误码一致性、自定义消息）、`test/unit/response.test.js`（9 个响应模块测试覆盖 ok/fail envelope、JSON 序列化）、`test/unit/middleware.test.js`（12 个中间件测试覆盖 validate 校验、request-id 生成与传递）；总测试数从 535 增至 576 |
 | 2026-06-05 | 本轮验收收敛：新增 `scripts/acceptance-gate.js`、`test/unit/acceptance-gate.test.js` 和 `npm run ops:acceptance-gate`，组合执行 preflight、证据状态和 seal 验签的最终发布门禁；同步将 gate 纳入 `scripts/acceptance-preflight.js` 检查，并更新 `docs/release-acceptance-runbook.md`；上线验收进度保持 5/11 |
 | 2026-06-05 | 本轮验收收敛：扩展 `scripts/acceptance-preflight.js` 和 `test/unit/acceptance-preflight.test.js`，将 `scripts/acceptance-seal.js` 与 `npm run ops:acceptance-seal` 纳入外部验收前本地预检查，避免证据包封存能力漏检；上线验收进度保持 5/11 |
 | 2026-06-05 | 本轮验收收敛：新增 `scripts/acceptance-seal.js`、`test/unit/acceptance-seal.test.js` 和 `npm run ops:acceptance-seal`，可对验收证据包生成 `acceptance-seal.json` SHA-256 封存文件，并支持后续 verify 检测证据包是否被改动；同步更新 `docs/release-acceptance-runbook.md`；上线验收进度保持 5/11 |
