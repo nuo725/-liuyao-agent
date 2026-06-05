@@ -412,6 +412,7 @@ backend-node/
 
 | 日期 | 内容 |
 |------|------|
+| 2026-06-05 | 本轮验收收敛：扩展 `scripts/acceptance-preflight.js` 和 `test/unit/acceptance-preflight.test.js`，将 `scripts/acceptance-seal.js` 与 `npm run ops:acceptance-seal` 纳入外部验收前本地预检查，避免证据包封存能力漏检；上线验收进度保持 5/11 |
 | 2026-06-05 | 本轮验收收敛：新增 `scripts/acceptance-seal.js`、`test/unit/acceptance-seal.test.js` 和 `npm run ops:acceptance-seal`，可对验收证据包生成 `acceptance-seal.json` SHA-256 封存文件，并支持后续 verify 检测证据包是否被改动；同步更新 `docs/release-acceptance-runbook.md`；上线验收进度保持 5/11 |
 | 2026-06-05 | 本轮验收收敛：新增 `scripts/acceptance-preflight.js`、`test/unit/acceptance-preflight.test.js` 和 `npm run ops:acceptance-preflight`，外部验收前可自动检查源文档、runbook、溯源表、migration、acceptance 脚本、package scripts、`PROGRESS.md` 进度口径和剩余验收项映射；同步更新 `docs/release-acceptance-runbook.md`；上线验收进度保持 5/11 |
 | 2026-06-05 | 本轮验收收敛：新增 `test/unit/acceptance-progress.test.js`，自动校验 `PROGRESS.md` 上线验收矩阵总数、完成数、顶部/矩阵 `5/11` 口径和剩余外部验收项下一步行动一致性；上线验收进度保持 5/11 |

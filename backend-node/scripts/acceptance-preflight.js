@@ -19,6 +19,7 @@ const REQUIRED_FILES = [
   'scripts/acceptance-evidence-validate.js',
   'scripts/acceptance-package.js',
   'scripts/acceptance-status.js',
+  'scripts/acceptance-seal.js',
 ];
 
 const REQUIRED_PACKAGE_SCRIPTS = [
@@ -34,6 +35,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   'ops:acceptance-evidence:check',
   'ops:acceptance-package',
   'ops:acceptance-status',
+  'ops:acceptance-seal',
 ];
 
 const REQUIRED_REMAINING_ITEMS = [

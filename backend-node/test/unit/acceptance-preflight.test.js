@@ -24,13 +24,23 @@ describe('Acceptance preflight', () => {
   it('reports missing package scripts as failed checks', () => {
     const rootDir = makeMinimalWorkspace();
     const packageJson = JSON.parse(fs.readFileSync(path.join(rootDir, 'package.json'), 'utf8'));
-    delete packageJson.scripts['ops:acceptance-status'];
+    delete packageJson.scripts['ops:acceptance-seal'];
     fs.writeFileSync(path.join(rootDir, 'package.json'), JSON.stringify(packageJson), 'utf8');
 
     const result = runAcceptancePreflight({ rootDir });
 
     assert.equal(result.ok, false);
-    assert.ok(result.checks.some((check) => check.name === 'script:ops:acceptance-status' && check.status === 'fail'));
+    assert.ok(result.checks.some((check) => check.name === 'script:ops:acceptance-seal' && check.status === 'fail'));
+  });
+
+  it('reports missing acceptance seal script as a failed file check', () => {
+    const rootDir = makeMinimalWorkspace();
+    fs.unlinkSync(path.join(rootDir, 'scripts', 'acceptance-seal.js'));
+
+    const result = runAcceptancePreflight({ rootDir });
+
+    assert.equal(result.ok, false);
+    assert.ok(result.checks.some((check) => check.name === 'file:scripts/acceptance-seal.js' && check.status === 'fail'));
   });
 
   it('extracts acceptance rows without table headers', () => {
@@ -83,6 +93,7 @@ function copyRequiredFiles(rootDir) {
     'scripts/acceptance-evidence-validate.js',
     'scripts/acceptance-package.js',
     'scripts/acceptance-status.js',
+    'scripts/acceptance-seal.js',
   ]) {
     copyFile(path.join(ROOT, file), path.join(rootDir, file));
   }
