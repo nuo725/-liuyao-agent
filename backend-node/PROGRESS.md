@@ -318,6 +318,7 @@ backend-node/
 │       ├── acceptance-package.test.js          # 上线验收证据包测试
 │       ├── acceptance-status.test.js           # 上线验收状态汇总测试
 │       ├── acceptance-traceability.test.js     # 上线验收溯源一致性测试
+│       ├── acceptance-progress.test.js         # 上线验收进度口径一致性测试
 │       ├── adapter-check.test.js               # 外部服务适配检查脚本测试
 │       ├── adapter-mock.test.js                # 外部适配器 mock 集成测试
 │       ├── adapter-error-scenarios.test.js     # 适配器错误场景测试
@@ -407,6 +408,7 @@ backend-node/
 
 | 日期 | 内容 |
 |------|------|
+| 2026-06-05 | 本轮验收收敛：新增 `test/unit/acceptance-progress.test.js`，自动校验 `PROGRESS.md` 上线验收矩阵总数、完成数、顶部/矩阵 `5/11` 口径和剩余外部验收项下一步行动一致性；上线验收进度保持 5/11 |
 | 2026-06-05 | 本轮验收收敛：新增 `docs/acceptance-traceability.md` 和 `test/unit/acceptance-traceability.test.js`，将 11 个上线验收项逐项映射到 `BACKEND_TDL_AND_DELIVERY_PLAN.md` 与 `PRODUCT_PRD.md` 的来源章节，并用测试保证 `PROGRESS.md` 验收矩阵与溯源表一致；同步更新 `docs/release-acceptance-runbook.md`；上线验收进度保持 5/11 |
 | 2026-06-05 | 本轮验收收敛：新增 `scripts/acceptance-status.js`、`test/unit/acceptance-status.test.js` 和 `npm run ops:acceptance-status`，可读取验收证据包并输出 pass/partial/fail/pending 汇总、阻塞原因和 ready 状态；同步更新 `docs/release-acceptance-runbook.md`；上线验收进度保持 5/11 |
 | 2026-06-05 | 本轮验收收敛：新增 `scripts/acceptance-package.js`、`test/unit/acceptance-package.test.js` 和 `npm run ops:acceptance-package`，可一次性生成 `acceptance-evidence.md` 与 `acceptance-manifest.json`，把剩余外部验收项沉淀为可归档、可校验的发布证据包；同步更新 `docs/release-acceptance-runbook.md`；上线验收进度保持 5/11 |
