@@ -27,7 +27,7 @@
 
 **功能实现进度：92/92 个任务完成（100%）**
 
-**上线验收进度：2/11 项完成（18%）**
+**上线验收进度：3/11 项完成（27%）**
 
 ---
 
@@ -242,7 +242,7 @@
 | CONTRACT-001 | 正式 API 口径决议 | ✅ 已完成 | `docs/api-contract-decision.md` | 决议保留 `/api/v1` 和 `success/data` 作为当前实现契约；未来如需 `/v1` 另开兼容层任务 |
 | DB-001 | Prisma migration 基线与回滚 | 🟡 部分完成 | `prisma/migrations/202606050001_initial_schema/migration.sql` + `docs/db-migration-baseline.md` | migration 基线已生成；真实 `migrate deploy`、`seed`、恢复验证待 PostgreSQL 环境执行 |
 | RATE-001 | 生产级敏感接口限流策略 | ✅ 已完成 | `RateLimitBucket` + `202606050002_rate_limit_buckets` + `docs/rate-limit-strategy.md` + `test/unit/rate-limit.test.js` | 生产要求 `RATE_LIMIT_STORE=database`；真实表创建随 DB-001 deploy 执行 |
-| AGENT-001 | 独立 Agent 接入边界与联调计划 | 🔲 未开始 | 业务后端与 Agent 的认证、超时、重试、降级、结果缓存和 SSE 边界文档 | 业务后端范围与 PRD 生产数据流需明确拆分 |
+| AGENT-001 | 独立 Agent 接入边界与联调计划 | ✅ 已完成 | `docs/agent-integration-boundary.md` | 已明确业务后端与 Agent 的认证、请求/响应、超时、重试、降级、结果缓存、SSE relay 和后续联调计划；当前不实现生成能力 |
 | TEST-001 | API 集成测试主链路 | 🔲 未开始 | 登录、仪式、社区、通知、同频、活动、媒体、资料、账单等 API 集成测试报告 | 当前以单元测试和契约骨架为主 |
 | TEST-002 | 安全测试主链路 | 🔲 未开始 | 无 Token/过期 Token/越权/Idempotency 重放/非法上传/私密泄露/审核绕过测试记录 | 当前仅有本地安全配置检查 |
 | OPS-VERIFY-001 | 备份恢复演练 | 🔲 未开始 | 预发布数据库备份文件、恢复命令、恢复后校验记录 | 当前只有 dry-run 脚本 |
@@ -251,7 +251,7 @@
 | FE-CONTRACT-001 | Flutter 主页面契约回归 | 🔲 未开始 | 当前 Flutter 页面 Auth→Profile→Ritual→Community→Notification→Match→Activity 的真实后端联调记录 | 契约测试骨架已存在，默认跳过；真实执行需 PostgreSQL + `RUN_CONTRACT_DB=1` |
 | ADAPTER-001 | 生产外部服务适配验收 | 🔲 未开始 | SMS、微信/QQ、对象存储、Push、支付回调验签的生产或预发布配置与回归记录 | 当前多为 mock/dev fallback |
 
-**上线验收进度：2/11**
+**上线验收进度：3/11**
 
 ---
 
@@ -272,7 +272,8 @@ backend-node/
 │   ├── ops-runbook.md                          # 备份、恢复、安全检查、压测、监控和 Git 版本管理步骤
 │   ├── api-contract-decision.md                # 正式 API 口径决议
 │   ├── db-migration-baseline.md                # Prisma migration 基线与部署/回滚说明
-│   └── rate-limit-strategy.md                  # 生产级敏感接口限流策略
+│   ├── rate-limit-strategy.md                  # 生产级敏感接口限流策略
+│   └── agent-integration-boundary.md           # 独立 Agent 接入边界与联调计划
 ├── openapi/
 │   └── openapi.yaml                            # OpenAPI 3.1 契约（全模块）
 ├── prisma/
@@ -363,8 +364,8 @@ backend-node/
 5. **OPS-VERIFY-001 ~ 003** → 预发布恢复演练、性能压测报告、Dashboard/告警联调记录。
 6. **ADAPTER-001** → SMS、社交登录、S3、Push、支付回调验签的生产/预发布适配验收。
 
-### 优先级 P2（Agent 与后续联调）
-7. **AGENT-001** → 明确业务后端与独立 Agent 的接入边界、超时重试、降级和 SSE 后续计划。
+### 已完成的边界决议
+- **AGENT-001** → 已明确业务后端与独立 Agent 的接入边界、超时重试、降级、结果缓存和 SSE relay 后续计划；真实 Agent adapter 与预发布联调另行进入实现/验收任务。
 
 ---
 
@@ -372,6 +373,7 @@ backend-node/
 
 | 日期 | 内容 |
 |------|------|
+| 2026-06-05 | 本轮验收推进：完成 AGENT-001，新增 `docs/agent-integration-boundary.md`，冻结业务后端与独立 Agent 的认证、请求/响应、SSE relay、超时重试、降级和缓存边界；上线验收进度更新至 3/11 |
 | 2026-06-05 | 本轮验收推进：完成 RATE-001，新增 `RateLimitBucket`、DB-backed 限流策略、生产安全检查和限流单测；上线验收进度更新至 2/11 |
 | 2026-06-05 | 本轮验收推进：完成 CONTRACT-001 API 口径决议；生成 Prisma initial migration 基线并补 `db:deploy` 与迁移说明；DB-001 标为部分完成；上线验收进度更新至 1/11 |
 | 2026-06-05 | 本轮文档校准：根据 TDL/PRD 将进度拆分为“功能实现进度”和“上线验收进度”；新增 11 项上线验收矩阵；修正 API 口径、迁移、限流、OPS dry-run、联调和生产适配的完成状态 |
