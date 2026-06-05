@@ -247,6 +247,18 @@ Summarize the current package status:
 npm run ops:acceptance-status -- --package=release-evidence/staging-<date>
 ```
 
+Seal the completed package for release/audit records:
+
+```powershell
+npm run ops:acceptance-seal -- --package=release-evidence/staging-<date>
+```
+
+Verify a previously sealed package:
+
+```powershell
+npm run ops:acceptance-seal -- --verify --seal=release-evidence/staging-<date>/acceptance-seal.json
+```
+
 Use JSON output when the status must be attached to CI or release automation:
 
 ```powershell
