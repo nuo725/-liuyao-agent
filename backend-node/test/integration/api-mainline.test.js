@@ -313,4 +313,150 @@ describe('API mainline integration', () => {
     );
     assert.equal(join.status, 'joined');
   });
+
+  it('covers notification read, dismiss, and system notification flows', async () => {
+    const notifs = await expectOk(await client.get('/api/v1/notifications', { headers: authHeaders() }));
+    assert.ok(Array.isArray(notifs.items));
+
+    const markRead = await expectOk(
+      await client.post('/api/v1/notifications/notif_1/read', { headers: authHeaders() })
+    );
+    assert.equal(markRead.read, true);
+
+    const markAll = await expectOk(
+      await client.post('/api/v1/notifications/read-all', { headers: authHeaders() })
+    );
+    assert.equal(markAll.readAll, true);
+
+    const dismiss = await expectOk(
+      await client.post('/api/v1/notifications/notif_1/dismiss', { headers: authHeaders() })
+    );
+    assert.equal(dismiss.dismissed, true);
+  });
+
+  it('covers community follow, block, and report flows', async () => {
+    const follow = await expectOk(
+      await client.post('/api/v1/community/author/author_1/follow', { headers: authHeaders() })
+    );
+    assert.equal(follow.following, true);
+
+    const unfollow = await expectOk(
+      await client.post('/api/v1/community/author/author_1/unfollow', { headers: authHeaders() })
+    );
+    assert.equal(unfollow.following, false);
+
+    const block = await expectOk(
+      await client.post('/api/v1/community/author/author_1/block', { headers: authHeaders() })
+    );
+    assert.equal(block.blocked, true);
+
+    const report = await expectOk(
+      await client.post('/api/v1/community/post/post_1/report', {
+        headers: authHeaders(),
+        body: { reason: 'spam' },
+      })
+    );
+    assert.equal(report.reported, true);
+  });
+
+  it('covers ritual session restore, followup, and history flows', async () => {
+    const session = await expectOk(
+      await client.get('/api/v1/ritual/session/ritual_api_mainline', { headers: authHeaders() })
+    );
+    assert.equal(session.sessionId, 'ritual_api_mainline');
+
+    const preview = await expectOk(
+      await client.get('/api/v1/ritual/session/ritual_api_mainline/preview')
+    );
+    assert.equal(preview.preview, true);
+
+    const followup = await expectOk(
+      await client.post('/api/v1/ritual/session/ritual_api_mainline/continue', {
+        headers: authHeaders(),
+        body: { message: '我应该怎么判断？' },
+      })
+    );
+    assert.equal(followup.sessionId, 'ritual_api_mainline');
+
+    const history = await expectOk(
+      await client.get('/api/v1/ritual/session/ritual_api_mainline/chat-history', { headers: authHeaders() })
+    );
+    assert.ok(Array.isArray(history.items));
+
+    const completion = await expectOk(
+      await client.get('/api/v1/ritual/user/user_api_mainline/completion-today', { headers: authHeaders() })
+    );
+    assert.equal(completion.completed, true);
+  });
+
+  it('covers community like, favorite, comment, and search flows', async () => {
+    const like = await expectOk(
+      await client.post('/api/v1/community/post/post_1/like', { headers: authHeaders() })
+    );
+    assert.equal(like.liked, true);
+
+    const unlike = await expectOk(
+      await client.post('/api/v1/community/post/post_1/unlike', { headers: authHeaders() })
+    );
+    assert.equal(unlike.liked, false);
+
+    const fav = await expectOk(
+      await client.post('/api/v1/community/post/post_1/favorite', { headers: authHeaders() })
+    );
+    assert.equal(fav.favorited, true);
+
+    const comment = await expectOk(
+      await client.post('/api/v1/community/post/post_1/comments', {
+        headers: authHeaders({ 'Idempotency-Key': 'api-mainline-comment' }),
+        body: { text: '测试评论' },
+      })
+    );
+    assert.equal(comment.id, 'comment_api_mainline');
+
+    const comments = await expectOk(
+      await client.get('/api/v1/community/post/post_1/comments?page=1&pageSize=10')
+    );
+    assert.ok(Array.isArray(comments.items));
+
+    const search = await expectOk(
+      await client.get('/api/v1/community/search?q=测试&type=post')
+    );
+    assert.equal(search.q, '测试');
+  });
+
+  it('covers profile settings, checkin, and anonymous flows', async () => {
+    const settings = await expectOk(
+      await client.get('/api/v1/profile/me/settings', { headers: authHeaders() })
+    );
+    assert.equal(settings.pushEnabled, true);
+
+    const checkin = await expectOk(
+      await client.post('/api/v1/profile/me/checkin', { headers: authHeaders() })
+    );
+    assert.equal(checkin.checkedIn, true);
+
+    const calendar = await expectOk(
+      await client.get('/api/v1/profile/me/checkin-calendar', { headers: authHeaders() })
+    );
+    assert.ok(Array.isArray(calendar.items));
+
+    const shareCard = await expectOk(
+      await client.get('/api/v1/profile/me/share-card', { headers: authHeaders() })
+    );
+    assert.ok(shareCard.url);
+
+    const anonProfile = await expectOk(
+      await client.get('/api/v1/profile/me/anonymous', { headers: authHeaders() })
+    );
+    assert.ok(anonProfile.nickname);
+  });
+
+  it('covers error envelope for missing routes', async () => {
+    const res = await client.get('/api/v1/nonexistent');
+    assert.equal(res.status, 404);
+    assert.equal(res.body.success, false);
+    assert.ok(res.body.error);
+    assert.ok(res.body.error.code);
+    assert.ok(res.body.error.message);
+  });
 });
