@@ -253,6 +253,21 @@
 
 **上线验收进度：5/11**
 
+### ⛔ 外部环境依赖说明
+
+以下验收项需要外部环境才能完成，当前本地环境无法执行：
+
+| 验收项 | 阻塞原因 | 需要什么 |
+|--------|---------|---------|
+| DB-001 | 无 PostgreSQL | Docker + `npm run db:deploy && db:seed && db:backup && db:restore` |
+| OPS-VERIFY-001 | 无 PostgreSQL | 同上，备份/恢复真实演练 |
+| OPS-VERIFY-002 | 无预发布服务器 | 预发布环境 + `PERF_AUTH_TOKEN` + `PERF_POST_ID` |
+| OPS-VERIFY-003 | 无监控/Webhook | 预发布环境 + Dashboard + `ALERT_WEBHOOK_URL` |
+| FE-CONTRACT-001 | 不改前端 | PostgreSQL + Flutter 页面联调 |
+| ADAPTER-001 | 无外部服务 | SMS/微信/QQ/S3/Push/支付真实 provider 配置 |
+
+**本地可做的已全部完成：** 脚本、测试、文档、OpenAPI、验收工具链均已就绪。等待外部环境后执行即可。
+
 ---
 
 ## 已创建文件清单
