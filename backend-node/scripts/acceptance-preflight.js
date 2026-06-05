@@ -20,6 +20,7 @@ const REQUIRED_FILES = [
   'scripts/acceptance-package.js',
   'scripts/acceptance-status.js',
   'scripts/acceptance-seal.js',
+  'scripts/acceptance-gate.js',
 ];
 
 const REQUIRED_PACKAGE_SCRIPTS = [
@@ -36,6 +37,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   'ops:acceptance-package',
   'ops:acceptance-status',
   'ops:acceptance-seal',
+  'ops:acceptance-gate',
 ];
 
 const REQUIRED_REMAINING_ITEMS = [

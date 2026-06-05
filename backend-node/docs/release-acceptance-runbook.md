@@ -259,6 +259,12 @@ Verify a previously sealed package:
 npm run ops:acceptance-seal -- --verify --seal=release-evidence/staging-<date>/acceptance-seal.json
 ```
 
+Run the final release gate after status and seal are ready:
+
+```powershell
+npm run ops:acceptance-gate -- --package=release-evidence/staging-<date>
+```
+
 Use JSON output when the status must be attached to CI or release automation:
 
 ```powershell

@@ -30,6 +30,7 @@
     "ops:acceptance-status": "node scripts/acceptance-status.js",
     "ops:acceptance-preflight": "node scripts/acceptance-preflight.js",
     "ops:acceptance-seal": "node scripts/acceptance-seal.js",
+    "ops:acceptance-gate": "node scripts/acceptance-gate.js",
     "ops:data-export": "node scripts/data-deletion.js --action=export",
     "ops:data-delete": "node scripts/data-deletion.js --action=delete --confirm",
     "worker:outbox": "node src/workers/outbox.js"

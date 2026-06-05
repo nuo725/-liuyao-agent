@@ -300,6 +300,7 @@ backend-node/
 │   ├── acceptance-status.js                    # 上线验收证据包状态汇总脚本
 │   ├── acceptance-preflight.js                 # 外部验收前本地资料与脚本预检查
 │   ├── acceptance-seal.js                      # 上线验收证据包 SHA-256 封存脚本
+│   ├── acceptance-gate.js                      # 上线验收证据包最终发布门禁脚本
 │   ├── perf-smoke.js                           # 性能 smoke test 脚本
 │   ├── perf-scenarios.js                       # 主链路性能压测场景脚本
 │   └── alert-check.js                          # 监控告警检查脚本
@@ -323,6 +324,7 @@ backend-node/
 │       ├── acceptance-progress.test.js         # 上线验收进度口径一致性测试
 │       ├── acceptance-preflight.test.js        # 外部验收前本地预检查测试
 │       ├── acceptance-seal.test.js             # 上线验收证据包封存测试
+│       ├── acceptance-gate.test.js             # 上线验收最终发布门禁测试
 │       ├── adapter-check.test.js               # 外部服务适配检查脚本测试
 │       ├── adapter-mock.test.js                # 外部适配器 mock 集成测试
 │       ├── adapter-error-scenarios.test.js     # 适配器错误场景测试
@@ -392,7 +394,7 @@ backend-node/
 ## 下一步行动
 
 ### 优先级 P0（修正完成口径并补上线验收）
-1. **DB-001** → 按 `docs/release-acceptance-runbook.md` 在 PostgreSQL 环境执行 `npm run db:deploy` / `npm run db:seed` / 备份恢复验证；外部验收前先跑 `npm run ops:acceptance-preflight`，再用 `npm run ops:acceptance-package -- --out=release-evidence/<env-date> --environment=<env> --commit=<sha>` 生成完整验收包，填完后用 `npm run ops:acceptance-evidence:check -- --file=<evidence.md> --item=DB-001 --require-pass=1` 校验证据完整性，用 `npm run ops:acceptance-status -- --package=release-evidence/<env-date>` 汇总当前验收状态，通过后用 `npm run ops:acceptance-seal -- --package=release-evidence/<env-date>` 封存证据包 hash。
+1. **DB-001** → 按 `docs/release-acceptance-runbook.md` 在 PostgreSQL 环境执行 `npm run db:deploy` / `npm run db:seed` / 备份恢复验证；外部验收前先跑 `npm run ops:acceptance-preflight`，再用 `npm run ops:acceptance-package -- --out=release-evidence/<env-date> --environment=<env> --commit=<sha>` 生成完整验收包，填完后用 `npm run ops:acceptance-evidence:check -- --file=<evidence.md> --item=DB-001 --require-pass=1` 校验证据完整性，用 `npm run ops:acceptance-status -- --package=release-evidence/<env-date>` 汇总当前验收状态，通过后用 `npm run ops:acceptance-seal -- --package=release-evidence/<env-date>` 封存证据包 hash，最后用 `npm run ops:acceptance-gate -- --package=release-evidence/<env-date>` 做发布门禁判断。
 2. **FE-CONTRACT-001** → API 主链路集成测试已扩展；真实 Flutter 联调需 PostgreSQL + `RUN_CONTRACT_DB=1`，并按 runbook 记录 Auth/Profile/Ritual/Community/Notifications/Match/Activities 页面结果。
 
 ### 优先级 P1（预发布演练）
@@ -412,6 +414,7 @@ backend-node/
 
 | 日期 | 内容 |
 |------|------|
+| 2026-06-05 | 本轮验收收敛：新增 `scripts/acceptance-gate.js`、`test/unit/acceptance-gate.test.js` 和 `npm run ops:acceptance-gate`，组合执行 preflight、证据状态和 seal 验签的最终发布门禁；同步将 gate 纳入 `scripts/acceptance-preflight.js` 检查，并更新 `docs/release-acceptance-runbook.md`；上线验收进度保持 5/11 |
 | 2026-06-05 | 本轮验收收敛：扩展 `scripts/acceptance-preflight.js` 和 `test/unit/acceptance-preflight.test.js`，将 `scripts/acceptance-seal.js` 与 `npm run ops:acceptance-seal` 纳入外部验收前本地预检查，避免证据包封存能力漏检；上线验收进度保持 5/11 |
 | 2026-06-05 | 本轮验收收敛：新增 `scripts/acceptance-seal.js`、`test/unit/acceptance-seal.test.js` 和 `npm run ops:acceptance-seal`，可对验收证据包生成 `acceptance-seal.json` SHA-256 封存文件，并支持后续 verify 检测证据包是否被改动；同步更新 `docs/release-acceptance-runbook.md`；上线验收进度保持 5/11 |
 | 2026-06-05 | 本轮验收收敛：新增 `scripts/acceptance-preflight.js`、`test/unit/acceptance-preflight.test.js` 和 `npm run ops:acceptance-preflight`，外部验收前可自动检查源文档、runbook、溯源表、migration、acceptance 脚本、package scripts、`PROGRESS.md` 进度口径和剩余验收项映射；同步更新 `docs/release-acceptance-runbook.md`；上线验收进度保持 5/11 |

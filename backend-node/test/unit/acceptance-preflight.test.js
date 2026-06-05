@@ -94,6 +94,7 @@ function copyRequiredFiles(rootDir) {
     'scripts/acceptance-package.js',
     'scripts/acceptance-status.js',
     'scripts/acceptance-seal.js',
+    'scripts/acceptance-gate.js',
   ]) {
     copyFile(path.join(ROOT, file), path.join(rootDir, file));
   }
