@@ -25,6 +25,14 @@ npm run db:backup
 
 Backups are written to `backend-node/backups/` and ignored by Git. Each successful backup also writes a small `.manifest.json` file with the redacted database URL and creation time.
 
+Custom output directory:
+
+```powershell
+npm run db:backup -- --out=my-backups
+```
+
+The backup script exports `runBackup()` for programmatic use with options: `databaseUrl`, `pgDump`, `outputDir`, `dryRun`, `cwd`. Unit tests cover `redactDatabaseUrl`, `parseBackupArgs`, `buildManifest`, and dry-run mode.
+
 ## Restore drill
 
 Dry-run a restore command:
@@ -44,6 +52,8 @@ Use `--clean` only for a disposable drill database because it asks `pg_restore` 
 ```powershell
 npm run db:restore -- --file=backups/zhouyi-example.dump --clean
 ```
+
+The restore script supports both `.dump` (pg_restore) and `.sql` (psql) formats. It exports `runRestore()`, `parseRestoreArgs()`, and `buildRestoreCommand()` for programmatic use. Unit tests cover argument parsing, command building, format detection, and dry-run mode.
 
 ## Security check
 

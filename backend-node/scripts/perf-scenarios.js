@@ -4,10 +4,21 @@ require('dotenv').config();
 const { runLoadTest } = require('./perf-smoke');
 
 const DEFAULT_SCENARIOS = [
+  // Public / optional-auth read endpoints
   {
-    name: 'community_feed',
+    name: 'community_feed_recommended',
     method: 'GET',
     path: '/api/v1/community/feed?tab=recommended&page=1&pageSize=20',
+  },
+  {
+    name: 'community_feed_deep',
+    method: 'GET',
+    path: '/api/v1/community/feed?tab=deep&page=1&pageSize=20',
+  },
+  {
+    name: 'community_search',
+    method: 'GET',
+    path: '/api/v1/community/search?q=%E6%B5%8B%E8%AF%95&type=post&page=1&pageSize=10',
   },
   {
     name: 'post_detail',
@@ -15,6 +26,59 @@ const DEFAULT_SCENARIOS = [
     path: ({ postId }) => `/api/v1/community/post/${postId}`,
     required: ['PERF_POST_ID'],
   },
+  {
+    name: 'post_comments',
+    method: 'GET',
+    path: ({ postId }) => `/api/v1/community/post/${postId}/comments?page=1&pageSize=20`,
+    required: ['PERF_POST_ID'],
+  },
+  {
+    name: 'activity_list',
+    method: 'GET',
+    path: '/api/v1/activities/list?page=1&pageSize=10',
+  },
+  {
+    name: 'billing_plans',
+    method: 'GET',
+    path: '/api/v1/billing/plans',
+  },
+  {
+    name: 'health',
+    method: 'GET',
+    path: '/api/v1/health',
+  },
+  // Authenticated read endpoints
+  {
+    name: 'profile_me',
+    method: 'GET',
+    path: '/api/v1/profile/me',
+    required: ['PERF_AUTH_TOKEN'],
+  },
+  {
+    name: 'notifications_list',
+    method: 'GET',
+    path: '/api/v1/notifications?page=1&pageSize=20',
+    required: ['PERF_AUTH_TOKEN'],
+  },
+  {
+    name: 'notifications_unread_count',
+    method: 'GET',
+    path: '/api/v1/notifications/unread-count',
+    required: ['PERF_AUTH_TOKEN'],
+  },
+  {
+    name: 'credits_account',
+    method: 'GET',
+    path: '/api/v1/credits/account',
+    required: ['PERF_AUTH_TOKEN'],
+  },
+  {
+    name: 'match_same_frequency',
+    method: 'GET',
+    path: '/api/v1/match/same-frequency',
+    required: ['PERF_AUTH_TOKEN'],
+  },
+  // Authenticated write endpoints
   {
     name: 'comment_create',
     method: 'POST',

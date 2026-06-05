@@ -1,43 +1,5 @@
 #!/usr/bin/env node
 
-require('dotenv').config();
-
-async function runAlertCheck({
-  baseUrl = process.env.MONITOR_BASE_URL || 'http://127.0.0.1:3000',
-  webhookUrl = process.env.ALERT_WEBHOOK_URL || '',
-  maxErrorRate = Number(process.env.ALERT_MAX_ERROR_RATE || 0.05),
-  maxAvgDurationMs = Number(process.env.ALERT_MAX_AVG_DURATION_MS || 1000),
-  dryRun = false,
-} = {}) {
-  const health = await fetchJson(`${baseUrl}/api/v1/ready`);
-  const metrics = await fetchJson(`${baseUrl}/api/v1/metrics`);
-  const alerts = evaluateAlerts({
-    ready: health.status < 500 && health.body?.data?.ready === true,
-    metrics: metrics.body?.data || {},
-    maxErrorRate,
-    maxAvgDurationMs,
-  });
-
-  if (alerts.length > 0) {
-    const payload = {
-      title: 'zhouyi-backend alert',
-      baseUrl,
-      alerts,
-      checkedAt: new Date().toISOString(),
-    };
-    if (webhookUrl && !dryRun) {
-      await fetch(webhookUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-    }
-    return { ok: false, alerts, webhookSent: Boolean(webhookUrl && !dryRun) };
-  }
-
-  return { ok: true, alerts: [], webhookSent: false };
-}
-
 function evaluateAlerts({ ready, metrics, maxErrorRate, maxAvgDurationMs }) {
   const alerts = [];
   if (!ready) {
@@ -58,13 +20,16 @@ function evaluateAlerts({ ready, metrics, maxErrorRate, maxAvgDurationMs }) {
   return alerts;
 }
 
-async function fetchJson(url) {
-  const response = await fetch(url);
-  const body = await response.json();
-  return { status: response.status, body };
+function buildAlertPayload({ baseUrl, alerts }) {
+  return {
+    title: 'zhouyi-backend alert',
+    baseUrl,
+    alerts,
+    checkedAt: new Date().toISOString(),
+  };
 }
 
-function parseArgs(argv) {
+function parseAlertArgs(argv) {
   const values = Object.fromEntries(
     argv
       .filter((arg) => arg.startsWith('--') && arg.includes('='))
@@ -82,8 +47,46 @@ function parseArgs(argv) {
   };
 }
 
+async function runAlertCheck({
+  baseUrl = process.env.MONITOR_BASE_URL || 'http://127.0.0.1:3000',
+  webhookUrl = process.env.ALERT_WEBHOOK_URL || '',
+  maxErrorRate = Number(process.env.ALERT_MAX_ERROR_RATE || 0.05),
+  maxAvgDurationMs = Number(process.env.ALERT_MAX_AVG_DURATION_MS || 1000),
+  dryRun = false,
+  fetchFn = fetch,
+} = {}) {
+  const health = await fetchJson(`${baseUrl}/api/v1/ready`, fetchFn);
+  const metrics = await fetchJson(`${baseUrl}/api/v1/metrics`, fetchFn);
+  const alerts = evaluateAlerts({
+    ready: health.status < 500 && health.body?.data?.ready === true,
+    metrics: metrics.body?.data || {},
+    maxErrorRate,
+    maxAvgDurationMs,
+  });
+
+  if (alerts.length > 0) {
+    const payload = buildAlertPayload({ baseUrl, alerts });
+    if (webhookUrl && !dryRun) {
+      await fetchFn(webhookUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+    }
+    return { ok: false, alerts, webhookSent: Boolean(webhookUrl && !dryRun) };
+  }
+
+  return { ok: true, alerts: [], webhookSent: false };
+}
+
+async function fetchJson(url, fetchFn = fetch) {
+  const response = await fetchFn(url);
+  const body = await response.json();
+  return { status: response.status, body };
+}
+
 if (require.main === module) {
-  runAlertCheck(parseArgs(process.argv.slice(2)))
+  runAlertCheck(parseAlertArgs(process.argv.slice(2)))
     .then((result) => {
       console.log(JSON.stringify(result, null, 2));
       process.exit(result.ok ? 0 : 1);
@@ -96,5 +99,7 @@ if (require.main === module) {
 
 module.exports = {
   evaluateAlerts,
+  buildAlertPayload,
+  parseAlertArgs,
   runAlertCheck,
 };

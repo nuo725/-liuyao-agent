@@ -9,7 +9,7 @@ This document records the executable performance scenario kit added for `OPS-VER
 The repository now supports two levels of performance checks:
 
 - `scripts/perf-smoke.js`: single endpoint load smoke test.
-- `scripts/perf-scenarios.js`: mainline scenario runner for feed, post detail, comment create, and ritual creation.
+- `scripts/perf-scenarios.js`: mainline scenario runner covering all major modules.
 
 ## Scenario Command
 
@@ -33,10 +33,33 @@ npm run ops:perf-scenarios -- --requests=500 --concurrency=25 --maxP95Ms=800 --m
 
 ## Covered Scenarios
 
+### Public / optional-auth read endpoints
+
 | Scenario | Method | Endpoint | Required setup |
 |---|---|---|---|
-| `community_feed` | GET | `/api/v1/community/feed?tab=recommended&page=1&pageSize=20` | Published public feed content. |
+| `community_feed_recommended` | GET | `/api/v1/community/feed?tab=recommended&page=1&pageSize=20` | Published public feed content. |
+| `community_feed_deep` | GET | `/api/v1/community/feed?tab=deep&page=1&pageSize=20` | Published deep-dive feed content. |
+| `community_search` | GET | `/api/v1/community/search?q=测试&type=post&page=1&pageSize=10` | Indexed posts. |
 | `post_detail` | GET | `/api/v1/community/post/:postId` | `PERF_POST_ID`. |
+| `post_comments` | GET | `/api/v1/community/post/:postId/comments` | `PERF_POST_ID`. |
+| `activity_list` | GET | `/api/v1/activities/list?page=1&pageSize=10` | Published activities. |
+| `billing_plans` | GET | `/api/v1/billing/plans` | Active membership plans. |
+| `health` | GET | `/api/v1/health` | None. |
+
+### Authenticated read endpoints
+
+| Scenario | Method | Endpoint | Required setup |
+|---|---|---|---|
+| `profile_me` | GET | `/api/v1/profile/me` | `PERF_AUTH_TOKEN`. |
+| `notifications_list` | GET | `/api/v1/notifications?page=1&pageSize=20` | `PERF_AUTH_TOKEN`. |
+| `notifications_unread_count` | GET | `/api/v1/notifications/unread-count` | `PERF_AUTH_TOKEN`. |
+| `credits_account` | GET | `/api/v1/credits/account` | `PERF_AUTH_TOKEN`. |
+| `match_same_frequency` | GET | `/api/v1/match/same-frequency` | `PERF_AUTH_TOKEN`. |
+
+### Authenticated write endpoints
+
+| Scenario | Method | Endpoint | Required setup |
+|---|---|---|---|
 | `comment_create` | POST | `/api/v1/community/post/:postId/comments` | `PERF_AUTH_TOKEN`, `PERF_POST_ID`. |
 | `ritual_perform` | POST | `/api/v1/ritual/perform` | `PERF_AUTH_TOKEN`, enough credits, idempotency enabled. |
 
@@ -53,4 +76,4 @@ npm run ops:perf-scenarios -- --requests=500 --concurrency=25 --maxP95Ms=800 --m
 
 ## Current Status
 
-The scenario runner and tests are in place. A real staging run is still required, so `OPS-VERIFY-002` remains partial in `PROGRESS.md`.
+The scenario runner and tests are in place. 16 scenarios covering all major modules (community, profile, notifications, credits, match, activities, billing, ritual, health). A real staging run is still required, so `OPS-VERIFY-002` remains partial in `PROGRESS.md`.
