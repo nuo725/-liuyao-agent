@@ -219,6 +219,18 @@ Validate the full remaining-item evidence bundle:
 npm run ops:acceptance-evidence:check -- --file=<evidence.md> --require-pass=1
 ```
 
+Summarize the current package status:
+
+```powershell
+npm run ops:acceptance-status -- --package=release-evidence/staging-<date>
+```
+
+Use JSON output when the status must be attached to CI or release automation:
+
+```powershell
+npm run ops:acceptance-status -- --package=release-evidence/staging-<date> --format=json
+```
+
 Use this format in `PROGRESS.md` update notes or release notes:
 
 ```text

@@ -296,6 +296,7 @@ backend-node/
 │   ├── acceptance-evidence.js                  # 上线验收证据模板生成脚本
 │   ├── acceptance-evidence-validate.js         # 上线验收证据完整性校验脚本
 │   ├── acceptance-package.js                   # 上线验收证据包生成脚本
+│   ├── acceptance-status.js                    # 上线验收证据包状态汇总脚本
 │   ├── perf-smoke.js                           # 性能 smoke test 脚本
 │   ├── perf-scenarios.js                       # 主链路性能压测场景脚本
 │   └── alert-check.js                          # 监控告警检查脚本
@@ -314,6 +315,7 @@ backend-node/
 │       ├── acceptance-evidence.test.js         # 上线验收证据模板测试
 │       ├── acceptance-evidence-validate.test.js # 上线验收证据校验测试
 │       ├── acceptance-package.test.js          # 上线验收证据包测试
+│       ├── acceptance-status.test.js           # 上线验收状态汇总测试
 │       ├── adapter-check.test.js               # 外部服务适配检查脚本测试
 │       ├── adapter-mock.test.js                # 外部适配器 mock 集成测试
 │       ├── adapter-error-scenarios.test.js     # 适配器错误场景测试
@@ -383,7 +385,7 @@ backend-node/
 ## 下一步行动
 
 ### 优先级 P0（修正完成口径并补上线验收）
-1. **DB-001** → 按 `docs/release-acceptance-runbook.md` 在 PostgreSQL 环境执行 `npm run db:deploy` / `npm run db:seed` / 备份恢复验证；可先用 `npm run ops:acceptance-package -- --out=release-evidence/<env-date> --environment=<env> --commit=<sha>` 生成完整验收包，填完后用 `npm run ops:acceptance-evidence:check -- --file=<evidence.md> --item=DB-001 --require-pass=1` 校验证据完整性。
+1. **DB-001** → 按 `docs/release-acceptance-runbook.md` 在 PostgreSQL 环境执行 `npm run db:deploy` / `npm run db:seed` / 备份恢复验证；可先用 `npm run ops:acceptance-package -- --out=release-evidence/<env-date> --environment=<env> --commit=<sha>` 生成完整验收包，填完后用 `npm run ops:acceptance-evidence:check -- --file=<evidence.md> --item=DB-001 --require-pass=1` 校验证据完整性，并用 `npm run ops:acceptance-status -- --package=release-evidence/<env-date>` 汇总当前验收状态。
 2. **FE-CONTRACT-001** → API 主链路集成测试已扩展；真实 Flutter 联调需 PostgreSQL + `RUN_CONTRACT_DB=1`，并按 runbook 记录 Auth/Profile/Ritual/Community/Notifications/Match/Activities 页面结果。
 
 ### 优先级 P1（预发布演练）
@@ -403,6 +405,7 @@ backend-node/
 
 | 日期 | 内容 |
 |------|------|
+| 2026-06-05 | 本轮验收收敛：新增 `scripts/acceptance-status.js`、`test/unit/acceptance-status.test.js` 和 `npm run ops:acceptance-status`，可读取验收证据包并输出 pass/partial/fail/pending 汇总、阻塞原因和 ready 状态；同步更新 `docs/release-acceptance-runbook.md`；上线验收进度保持 5/11 |
 | 2026-06-05 | 本轮验收收敛：新增 `scripts/acceptance-package.js`、`test/unit/acceptance-package.test.js` 和 `npm run ops:acceptance-package`，可一次性生成 `acceptance-evidence.md` 与 `acceptance-manifest.json`，把剩余外部验收项沉淀为可归档、可校验的发布证据包；同步更新 `docs/release-acceptance-runbook.md`；上线验收进度保持 5/11 |
 | 2026-06-05 | 本轮验收收敛：新增 `scripts/acceptance-evidence-validate.js`、`test/unit/acceptance-evidence-validate.test.js` 和 `npm run ops:acceptance-evidence:check`，可对 DB-001、FE-CONTRACT-001、OPS-VERIFY-001~003、ADAPTER-001 的 Markdown 验收证据做必填项、勾选状态、Result 和占位符校验；同步更新 `docs/release-acceptance-runbook.md`；上线验收进度保持 5/11 |
 | 2026-06-05 | 本轮验收收敛：新增 `scripts/acceptance-evidence.js`、`test/unit/acceptance-evidence.test.js` 和 `npm run ops:acceptance-evidence`，可为 DB-001、FE-CONTRACT-001、OPS-VERIFY-001~003、ADAPTER-001 生成统一 Markdown 证据模板；上线验收进度保持 5/11 |
