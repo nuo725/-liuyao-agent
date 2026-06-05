@@ -3,7 +3,6 @@
 
 const { randomUUID } = require('crypto');
 const { getPrisma } = require('../../db/prisma');
-const { ApiError } = require('../../shared/api-error');
 const { createLogger } = require('../../shared/logger');
 
 const logger = createLogger('anonymous-service');

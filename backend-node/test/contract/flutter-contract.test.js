@@ -7,7 +7,9 @@ const assert = require('node:assert/strict');
 const { createTestApp } = require('../helpers/setup');
 const { startTestApp, stopTestApp } = require('../helpers/http');
 
-describe('Flutter Contract Regression', () => {
+const runContractDb = process.env.RUN_CONTRACT_DB === '1';
+
+describe('Flutter Contract Regression', { skip: runContractDb ? false : 'requires PostgreSQL and RUN_CONTRACT_DB=1' }, () => {
   let server, client;
   let accessToken;
 

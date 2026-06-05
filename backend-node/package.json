@@ -12,6 +12,7 @@
     "test:contract": "node --test test/contract/**/*.test.js",
     "lint": "eslint src/ test/",
     "db:migrate": "npx prisma migrate dev",
+    "db:deploy": "npx prisma migrate deploy",
     "db:generate": "npx prisma generate",
     "db:seed": "node prisma/seed.js",
     "db:reset": "npx prisma migrate reset",

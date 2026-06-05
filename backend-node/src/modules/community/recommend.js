@@ -2,9 +2,6 @@
 // Provides explainable feed distribution rules for recommended and deep tabs.
 // Does NOT use fortune-telling, fate, or personality scoring as signals.
 
-const { createLogger } = require('../../shared/logger');
-const logger = createLogger('recommend');
-
 /**
  * Scoring weights for recommended tab.
  * Focus on recency, engagement quality, and content completeness.
@@ -31,7 +28,7 @@ const DEEP_WEIGHTS = {
 /**
  * Score a post for the recommended tab.
  */
-function scoreRecommended(post, viewerContext) {
+function scoreRecommended(post, _viewerContext) {
   const scores = {};
 
   // Recency: exponential decay over 7 days

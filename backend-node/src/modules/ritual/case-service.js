@@ -3,9 +3,6 @@
 // Only retrieves community-safe versions, never exposes private content.
 
 const { getPrisma } = require('../../db/prisma');
-const { createLogger } = require('../../shared/logger');
-
-const logger = createLogger('case-service');
 
 /**
  * Search cases by question type, pattern structure, and keywords.
