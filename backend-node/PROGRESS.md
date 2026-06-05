@@ -277,7 +277,8 @@ backend-node/
 │   ├── security-test-report.md                 # 安全主链路自动化测试报告
 │   ├── api-integration-test-report.md          # API 主链路集成测试报告
 │   ├── adapter-readiness.md                    # 外部服务适配配置检查与真实验收要求
-│   └── performance-verification.md             # 性能压测场景与报告要求
+│   ├── performance-verification.md             # 性能压测场景与报告要求
+│   └── release-acceptance-runbook.md           # 剩余上线验收执行手册
 ├── openapi/
 │   └── openapi.yaml                            # OpenAPI 3.1 契约（全模块）
 ├── prisma/
@@ -366,9 +367,9 @@ backend-node/
 | 私密问题泄露到社区 | ✅ 已落地 | 社区发布校验卡归属与 communitySafeContent，只返回公开版 cardPreview |
 | 社区内容安全不足 | ✅ 已解决 | 发布/评论前审核、举报/屏蔽、审核记录和审核后台已实现 |
 | 同时开发全部模块 | ✅ 已避免 | 严格按 M0→M5 里程碑推进 |
-| 缺少自动化测试 | ⚠️ 部分解决 | CI、lint、基础测试、契约骨架已补；API 集成测试与安全测试待补 |
-| 无 Docker/PostgreSQL 环境 | ⚠️ 当前限制 | Docker Compose、备份/恢复脚本已创建，需在有 Docker 环境时运行迁移、seed 与恢复演练 |
-| 生产适配与预发布演练未完成 | ⚠️ 待验收 | ADAPTER-001、OPS-VERIFY-001~003 补齐真实 provider、恢复、压测、监控告警记录 |
+| 缺少自动化测试 | ✅ 本地自动化已补强 | CI、lint、API 主链路、安全、schema、migration、备份恢复 dry-run、性能场景、监控告警和 adapter mock/error 测试已补；剩余缺口主要是真实外部环境验收 |
+| 无 Docker/PostgreSQL 环境 | ⚠️ 当前限制 | Docker Compose、迁移、seed、备份/恢复脚本和 dry-run 测试已创建；按 `docs/release-acceptance-runbook.md` 在 PostgreSQL 环境执行 DB-001 与 OPS-VERIFY-001 |
+| 生产适配与预发布演练未完成 | ⚠️ 待验收 | 按 `docs/release-acceptance-runbook.md` 补齐真实 provider、Flutter 联调、恢复、压测、监控告警记录 |
 | 当前环境 npm 全局命令不可用 | ⚠️ 当前限制 | 使用内置 Node 直接调用本地 CLI；Git 已通过 `D:\Git\cmd\git.exe` 可用 |
 
 ---
@@ -376,14 +377,14 @@ backend-node/
 ## 下一步行动
 
 ### 优先级 P0（修正完成口径并补上线验收）
-1. **DB-001** → 在 PostgreSQL 环境执行 `npm run db:deploy` / `npm run db:seed`，记录验证与恢复方案。Prisma schema 验证测试已覆盖 41 个模型完整性。
-2. **FE-CONTRACT-001** → API 主链路集成测试已扩展至 9 个用例覆盖所有主要流程；真实 Flutter 联调需 PostgreSQL + `RUN_CONTRACT_DB=1`。
+1. **DB-001** → 按 `docs/release-acceptance-runbook.md` 在 PostgreSQL 环境执行 `npm run db:deploy` / `npm run db:seed` / 备份恢复验证，记录环境、commit、命令输出和恢复后校验。
+2. **FE-CONTRACT-001** → API 主链路集成测试已扩展；真实 Flutter 联调需 PostgreSQL + `RUN_CONTRACT_DB=1`，并按 runbook 记录 Auth/Profile/Ritual/Community/Notifications/Match/Activities 页面结果。
 
 ### 优先级 P1（预发布演练）
-3. **OPS-VERIFY-001** → 备份/恢复脚本已重构并有 27 个单元测试（含 9 个 dry-run 端到端测试）；需在 PostgreSQL 环境执行 `npm run db:backup` + `npm run db:restore` 并记录恢复后校验。
-4. **OPS-VERIFY-002** → 已扩展至 16 个场景覆盖所有主要模块，已有 mock HTTP 集成测试验证完整流程；需在预发布环境执行完整压测并记录 P95/错误率报告。
-5. **OPS-VERIFY-003** → alert-check 已重构并有 webhook 投递测试覆盖；需在预发布环境执行真实告警触发并记录 Dashboard/Webhook 联调。
-6. **ADAPTER-001** → 已有配置检查门禁和 22 个 adapter mock 集成测试；继续补 SMS、社交登录、S3、Push、支付回调验签的生产/预发布真实回归记录。
+3. **OPS-VERIFY-001** → 备份/恢复脚本已重构并有 dry-run 端到端测试；需按 runbook 在 PostgreSQL 环境执行 `npm run db:backup` + `npm run db:restore` 并记录恢复后校验。
+4. **OPS-VERIFY-002** → 已扩展至 16 个场景覆盖所有主要模块；需按 runbook 在预发布环境执行完整压测并记录 P95/错误率报告。
+5. **OPS-VERIFY-003** → alert-check 已重构并有 webhook 投递测试覆盖；需按 runbook 在预发布环境执行真实告警触发并记录 Dashboard/Webhook 联调。
+6. **ADAPTER-001** → 已有配置检查门禁和 adapter mock/error 测试；需按 runbook 补 SMS、社交登录、S3、Push、支付回调验签和 Agent adapter 的生产/预发布真实回归记录。
 
 ### 已完成的边界决议
 - **AGENT-001** → 已明确业务后端与独立 Agent 的接入边界、超时重试、降级、结果缓存和 SSE relay 后续计划；真实 Agent adapter 与预发布联调另行进入实现/验收任务。
@@ -396,6 +397,7 @@ backend-node/
 
 | 日期 | 内容 |
 |------|------|
+| 2026-06-05 | 本轮文档收敛：新增 `docs/release-acceptance-runbook.md`，统一 DB-001、FE-CONTRACT-001、OPS-VERIFY-001~003、ADAPTER-001 的外部环境验收步骤、命令和证据模板；同步修正关键风险与下一步行动中的过期描述；上线验收进度保持 5/11 |
 | 2026-06-05 | 本轮验收推进：新增 `test/unit/prisma-schema.test.js`（18 个 Prisma schema 验证测试）、`test/unit/db-backup-restore-flow.test.js`（9 个 dry-run 端到端测试）、`test/unit/perf-integration.test.js`（5 个 mock HTTP 集成测试）、`test/unit/adapter-mock.test.js`（22 个 adapter 边界测试）；扩展 `test/integration/api-mainline.test.js` 新增 6 个流程测试（通知读取/删除、社区关注/举报、仪式恢复/追问、社区点赞/评论/搜索、资料签到/匿名、错误 envelope）；总测试数从 78 增至 141；DB-001/OPS-VERIFY-001/002/FE-CONTRACT-001/ADAPTER-001 更新验收证据 |
 | 2026-06-05 | 本轮验收推进：新增 `test/unit/migration-validation.test.js`（26 个 migration SQL 验证测试覆盖 41 个表、24 个枚举、外键完整性、索引覆盖、schema 一致性）、`test/unit/adapter-error-scenarios.test.js`（17 个适配器错误场景测试覆盖超时/重试/无效响应/部分失败/熔断/降级/输入校验）；扩展 `test/integration/api-mainline.test.js` 新增 11 个边界测试（认证拒绝、无效 token、请求体校验、404 处理、健康检查、指标端点、X-Request-Id、envelope 一致性）；总测试数从 141 增至 195；DB-001/FE-CONTRACT-001/ADAPTER-001 更新验收证据 |
 | 2026-06-05 | 本轮验收推进：重构 `db-backup.js`/`db-restore.js`/`alert-check.js`/`data-deletion.js` 为可测试模块，新增 `test/unit/db-backup.test.js`（6 个测试）、`test/unit/db-restore.test.js`（7 个测试）、`test/unit/data-deletion.test.js`（7 个测试），扩展 `monitoring.test.js` 新增 webhook 投递和参数解析测试（+8 个测试），扩展 `perf-scenarios.js` 至 16 个场景覆盖所有主要模块；OPS-VERIFY-001 标为部分完成、OPS-VERIFY-003 标为部分完成、OPS-VERIFY-002 场景扩展；真实演练仍待 PostgreSQL 环境执行 |
