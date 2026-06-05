@@ -5,7 +5,7 @@ const { z } = require('zod');
 const performSchema = z.object({
   question: z.string().min(1, 'Question required').max(500),
   tag: z.enum(['relationship', 'career', 'emotion', 'choice', 'other']),
-  lines: z.array(z.enum([0, 1])).length(6, 'Must have exactly 6 lines'),
+  lines: z.array(z.union([z.literal(0), z.literal(1)])).length(6, 'Must have exactly 6 lines'),
   movingLines: z.array(z.number().int().min(0).max(5)).default([]),
 });
 

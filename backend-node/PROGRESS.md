@@ -27,7 +27,7 @@
 
 **功能实现进度：92/92 个任务完成（100%）**
 
-**上线验收进度：4/11 项完成（36%）**
+**上线验收进度：5/11 项完成（45%）**
 
 ---
 
@@ -243,7 +243,7 @@
 | DB-001 | Prisma migration 基线与回滚 | 🟡 部分完成 | `prisma/migrations/202606050001_initial_schema/migration.sql` + `docs/db-migration-baseline.md` | migration 基线已生成；真实 `migrate deploy`、`seed`、恢复验证待 PostgreSQL 环境执行 |
 | RATE-001 | 生产级敏感接口限流策略 | ✅ 已完成 | `RateLimitBucket` + `202606050002_rate_limit_buckets` + `docs/rate-limit-strategy.md` + `test/unit/rate-limit.test.js` | 生产要求 `RATE_LIMIT_STORE=database`；真实表创建随 DB-001 deploy 执行 |
 | AGENT-001 | 独立 Agent 接入边界与联调计划 | ✅ 已完成 | `docs/agent-integration-boundary.md` | 已明确业务后端与 Agent 的认证、请求/响应、超时、重试、降级、结果缓存、SSE relay 和后续联调计划；当前不实现生成能力 |
-| TEST-001 | API 集成测试主链路 | 🔲 未开始 | 登录、仪式、社区、通知、同频、活动、媒体、资料、账单等 API 集成测试报告 | 当前以单元测试和契约骨架为主 |
+| TEST-001 | API 集成测试主链路 | ✅ 已完成 | `test/integration/api-mainline.test.js` + `docs/api-integration-test-report.md` | 已覆盖登录、仪式、社区、通知、同频、活动、媒体、资料、额度和账单的 HTTP 主链路；service stub 隔离数据库，真实 DB 联调仍见 DB-001/FE-CONTRACT-001 |
 | TEST-002 | 安全测试主链路 | ✅ 已完成 | `test/unit/security-mainline.test.js` + `docs/security-test-report.md` | 已覆盖无 Token、过期 Token、越权、Idempotency 重放、非法上传、私密内容不外泄、审核绕过和高风险卡片限制 |
 | OPS-VERIFY-001 | 备份恢复演练 | 🔲 未开始 | 预发布数据库备份文件、恢复命令、恢复后校验记录 | 当前只有 dry-run 脚本 |
 | OPS-VERIFY-002 | 性能压测报告 | 🔲 未开始 | Feed、帖子详情、评论创建、仪式会话创建的 P95 与错误率报告 | 当前只有压测脚本 |
@@ -251,7 +251,7 @@
 | FE-CONTRACT-001 | Flutter 主页面契约回归 | 🔲 未开始 | 当前 Flutter 页面 Auth→Profile→Ritual→Community→Notification→Match→Activity 的真实后端联调记录 | 契约测试骨架已存在，默认跳过；真实执行需 PostgreSQL + `RUN_CONTRACT_DB=1` |
 | ADAPTER-001 | 生产外部服务适配验收 | 🔲 未开始 | SMS、微信/QQ、对象存储、Push、支付回调验签的生产或预发布配置与回归记录 | 当前多为 mock/dev fallback |
 
-**上线验收进度：4/11**
+**上线验收进度：5/11**
 
 ---
 
@@ -274,7 +274,8 @@ backend-node/
 │   ├── db-migration-baseline.md                # Prisma migration 基线与部署/回滚说明
 │   ├── rate-limit-strategy.md                  # 生产级敏感接口限流策略
 │   ├── agent-integration-boundary.md           # 独立 Agent 接入边界与联调计划
-│   └── security-test-report.md                 # 安全主链路自动化测试报告
+│   ├── security-test-report.md                 # 安全主链路自动化测试报告
+│   └── api-integration-test-report.md          # API 主链路集成测试报告
 ├── openapi/
 │   └── openapi.yaml                            # OpenAPI 3.1 契约（全模块）
 ├── prisma/
@@ -294,6 +295,8 @@ backend-node/
 │   ├── helpers/
 │   │   ├── setup.js                            # 测试辅助函数
 │   │   └── http.js                             # HTTP 测试客户端
+│   ├── integration/
+│   │   └── api-mainline.test.js                # API 主链路集成测试
 │   └── unit/
 │       ├── health.test.js                      # 健康检查测试
 │       ├── error-format.test.js                # 错误格式测试
@@ -359,8 +362,7 @@ backend-node/
 
 ### 优先级 P0（修正完成口径并补上线验收）
 1. **DB-001** → 在 PostgreSQL 环境执行 `npm run db:deploy` / `npm run db:seed`，记录验证与恢复方案。
-2. **TEST-001** → 补 API 集成测试主链路，覆盖登录、仪式、社区、通知、同频、活动、媒体、资料和账单。
-3. **FE-CONTRACT-001** → 用当前 Flutter 页面跑真实后端联调，形成契约回归记录。
+2. **FE-CONTRACT-001** → 用当前 Flutter 页面跑真实后端联调，形成契约回归记录。
 
 ### 优先级 P1（预发布演练）
 5. **OPS-VERIFY-001 ~ 003** → 预发布恢复演练、性能压测报告、Dashboard/告警联调记录。
@@ -368,6 +370,7 @@ backend-node/
 
 ### 已完成的边界决议
 - **AGENT-001** → 已明确业务后端与独立 Agent 的接入边界、超时重试、降级、结果缓存和 SSE relay 后续计划；真实 Agent adapter 与预发布联调另行进入实现/验收任务。
+- **TEST-001** → 已补 API 主链路集成测试，覆盖 Auth/Profile/Credits/Billing/Media/Notifications/Ritual/Community/Match/Activities 的 HTTP 合约。
 - **TEST-002** → 已补安全主链路自动化回归，覆盖无 Token、过期 Token、越权、幂等重放、非法上传、私密内容不外泄和审核绕过。
 
 ---
@@ -376,6 +379,7 @@ backend-node/
 
 | 日期 | 内容 |
 |------|------|
+| 2026-06-05 | 本轮验收推进：完成 TEST-001，新增 `test/integration/api-mainline.test.js` 与 `docs/api-integration-test-report.md`，覆盖 Auth/Profile/Credits/Billing/Media/Notifications/Ritual/Community/Match/Activities 的 HTTP 主链路；上线验收进度更新至 5/11 |
 | 2026-06-05 | 本轮验收推进：完成 TEST-002，新增 `test/unit/security-mainline.test.js` 与 `docs/security-test-report.md`，覆盖认证、越权、幂等、上传、隐私和审核绕过安全主链路；上线验收进度更新至 4/11 |
 | 2026-06-05 | 本轮验收推进：完成 AGENT-001，新增 `docs/agent-integration-boundary.md`，冻结业务后端与独立 Agent 的认证、请求/响应、SSE relay、超时重试、降级和缓存边界；上线验收进度更新至 3/11 |
 | 2026-06-05 | 本轮验收推进：完成 RATE-001，新增 `RateLimitBucket`、DB-backed 限流策略、生产安全检查和限流单测；上线验收进度更新至 2/11 |
