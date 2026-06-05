@@ -204,11 +204,11 @@
 |----|------|------|--------|------|
 | OPS-001 | 数据迁移与种子数据 | 🟡 Seed 完成，迁移待验收 | `prisma/seed.js` | 种子脚本已创建；缺 migration 基线和真实 PostgreSQL migrate/seed 记录 |
 | OPS-002 | 自动化备份与恢复演练 | 🟡 能力具备，演练待执行 | `scripts/db-backup.js` + `scripts/db-restore.js` + `docs/ops-runbook.md` | 支持 dry-run、备份 manifest、恢复命令；需预发布恢复记录 |
-| OPS-003 | 安全检查 | 🟡 本地检查完成，安全验收待执行 | `scripts/security-check.js` + `npm run ops:security-check` + `test/unit/security-check.test.js` + `test/unit/security-expanded.test.js` | 已检查配置基线；已补 22 个扩展安全测试覆盖敏感文件保护、无硬编码密钥、环境变量校验、依赖安全、输入校验、认证安全、错误处理安全、日志安全；需依赖审计、Secret 扫描、越权/重放/上传/隐私泄露测试 |
+| OPS-003 | 安全检查 | 🟡 本地检查完成，安全验收待执行 | `scripts/security-check.js` + `npm run ops:security-check` + `test/unit/security-check.test.js` + `test/unit/security-expanded.test.js` + `test/unit/security-upload-replay.test.js` | 已检查配置基线；已补 22 个扩展安全测试 + 29 个上传/重放/越权/依赖安全测试覆盖 MIME 校验、文件大小、幂等防重放、授权绕过、依赖审计、敏感数据保护、CORS；需 Secret 扫描真实环境执行 |
 | OPS-004 | 性能压测 | 🟡 脚本完成，压测报告待执行 | `scripts/perf-smoke.js` + `npm run ops:perf-smoke` + `test/unit/perf-smoke.test.js` + `test/unit/perf-smoke-validation.test.js` | 支持并发、p50/p95、错误率；已补 20 个验证测试覆盖统计计算、百分位、参数解析、阈值验证、负载测试执行；需 Feed/评论/仪式会话场景报告 |
 | OPS-005 | 灰度开关与回滚 | 🟡 能力具备，回滚演练待执行 | `src/shared/feature-flags.js` + `src/modules/admin/route.js` + `docs/ops-runbook.md` 回滚章节 + `test/unit/feature-flags.test.js` | 10 个 feature flag；已补 30 个测试覆盖所有标志定义、默认值、中文描述、运行时切换、环境变量覆盖、getAllFlags、requireFeature 中间件；需预发布关闭发布/评论/报名/订单演练 |
 | OPS-006 | 生产监控与告警 | 🟡 能力具备，告警联调待执行 | `/api/v1/ready` + `/api/v1/metrics` + `scripts/alert-check.js` + `test/unit/monitoring-endpoints.test.js` | 记录请求数、状态码、错误率、耗时；已补 17 个测试覆盖指标快照结构、请求记录、路由跟踪、告警评估、payload 构建、参数解析、健康检查格式、指标端点格式；需 Dashboard/Webhook 告警记录 |
-| OPS-007 | 隐私与数据删除验收 | 🟡 脚本完成，隐私验收待执行 | `scripts/data-deletion.js` + `npm run ops:data-export` / `ops:data-delete` + `test/unit/data-deletion.test.js` + `test/unit/data-deletion-validation.test.js` | 支持用户数据导出和删除；已补 25 个验证测试覆盖手机号脱敏、删除操作排序（子记录先于父记录）、导出查询完整性、GDPR 合规（用户内容/元数据/财务记录全覆盖）；需注销、删除、日志脱敏验收记录 |
+| OPS-007 | 隐私与数据删除验收 | 🟡 脚本完成，隐私验收待执行 | `scripts/data-deletion.js` + `npm run ops:data-export` / `ops:data-delete` + `test/unit/data-deletion.test.js` + `test/unit/data-deletion-validation.test.js` + `test/unit/log-sanitization.test.js` | 支持用户数据导出和删除；已补 25 个验证测试 + 19 个日志脱敏测试覆盖 logger redact 配置、敏感字段（token/phone/password/question/code）脱敏、数据删除脚本脱敏、备份脚本脱敏、错误处理不泄露栈信息、认证服务不记录原始 token/code；需真实注销/删除执行 |
 | OPS-008 | 前后端契约回归 | 🟡 测试骨架完成，Flutter 联调待执行 | `test/contract/flutter-contract.test.js` | 覆盖主链路契约骨架；需当前 Flutter 页面真实联调报告 |
 
 **Phase 8 功能进度：8/8；上线验收：0/8**
@@ -378,6 +378,8 @@ backend-node/
 │       ├── prisma-client.test.js               # Prisma 客户端测试
 │       ├── outbox.test.js                      # Outbox worker 测试
 │       ├── recommend.test.js                   # 推荐引擎测试
+│       ├── security-upload-replay.test.js      # 上传/重放/越权安全测试
+│       ├── log-sanitization.test.js            # 日志脱敏测试
 │       ├── db-backup.test.js                   # 数据库备份脚本单元测试
 │       ├── db-restore.test.js                  # 数据库恢复脚本单元测试
 │       ├── db-backup-restore-flow.test.js      # 备份恢复 dry-run 流程测试
@@ -467,6 +469,7 @@ backend-node/
 | 2026-06-05 | 本轮验收推进：新增 `test/unit/request-id.test.js`（6 个请求 ID 中间件测试覆盖 req_ 前缀、自定义 header、响应头设置、唯一性、next 调用、长度）、`test/unit/validate-middleware.test.js`（9 个校验中间件测试覆盖 body/query/params 校验、必填字段、validated 对象管理）、`test/unit/logger.test.js`（5 个日志模块测试覆盖实例创建、info/error/warn/debug 方法、模块名）；总测试数从 608 增至 628 |
 | 2026-06-05 | 本轮验收推进：新增 `test/unit/env.test.js`（15 个环境配置测试覆盖 getEnv 返回值、所有必需字段、类型强制、缓存）、`test/unit/prisma-client.test.js`（10 个 Prisma 客户端测试覆盖实例创建、缓存、模型存在性）、`test/unit/outbox.test.js`（9 个 Outbox worker 测试覆盖 runOnce/processJob 函数、通知/审核/未知任务类型处理、配置）；总测试数从 628 增至 662 |
 | 2026-06-05 | 本轮验收推进：新增 `test/unit/recommend.test.js`（19 个推荐引擎测试覆盖 scoreRecommended（近期/互动/内容质量/卡片/图片/标签多样性）、scoreDeep（深度/讨论/反思）、rankPosts 排序、applyDiversityFilter 作者/标签限制）；总测试数从 662 增至 681 |
+| 2026-06-05 | 本轮验收推进：新增 `test/unit/security-upload-replay.test.js`（29 个上传/重放/越权/依赖安全测试覆盖 MIME 校验、文件大小、幂等防重放、授权绕过、依赖审计、敏感数据保护、CORS）、`test/unit/log-sanitization.test.js`（19 个日志脱敏测试覆盖 logger redact 配置、敏感字段脱敏、数据删除/备份/错误处理/认证服务日志安全）；总测试数从 681 增至 729；OPS-003/OPS-007 更新验收证据 |
 | 2026-06-05 | 本轮验收收敛：新增 `scripts/acceptance-gate.js`、`test/unit/acceptance-gate.test.js` 和 `npm run ops:acceptance-gate`，组合执行 preflight、证据状态和 seal 验签的最终发布门禁；同步将 gate 纳入 `scripts/acceptance-preflight.js` 检查，并更新 `docs/release-acceptance-runbook.md`；上线验收进度保持 5/11 |
 | 2026-06-05 | 本轮验收收敛：扩展 `scripts/acceptance-preflight.js` 和 `test/unit/acceptance-preflight.test.js`，将 `scripts/acceptance-seal.js` 与 `npm run ops:acceptance-seal` 纳入外部验收前本地预检查，避免证据包封存能力漏检；上线验收进度保持 5/11 |
 | 2026-06-05 | 本轮验收收敛：新增 `scripts/acceptance-seal.js`、`test/unit/acceptance-seal.test.js` 和 `npm run ops:acceptance-seal`，可对验收证据包生成 `acceptance-seal.json` SHA-256 封存文件，并支持后续 verify 检测证据包是否被改动；同步更新 `docs/release-acceptance-runbook.md`；上线验收进度保持 5/11 |
