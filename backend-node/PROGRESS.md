@@ -204,10 +204,10 @@
 |----|------|------|--------|------|
 | OPS-001 | 数据迁移与种子数据 | 🟡 Seed 完成，迁移待验收 | `prisma/seed.js` | 种子脚本已创建；缺 migration 基线和真实 PostgreSQL migrate/seed 记录 |
 | OPS-002 | 自动化备份与恢复演练 | 🟡 能力具备，演练待执行 | `scripts/db-backup.js` + `scripts/db-restore.js` + `docs/ops-runbook.md` | 支持 dry-run、备份 manifest、恢复命令；需预发布恢复记录 |
-| OPS-003 | 安全检查 | 🟡 本地检查完成，安全验收待执行 | `scripts/security-check.js` + `npm run ops:security-check` | 已检查配置基线；需依赖审计、Secret 扫描、越权/重放/上传/隐私泄露测试 |
+| OPS-003 | 安全检查 | 🟡 本地检查完成，安全验收待执行 | `scripts/security-check.js` + `npm run ops:security-check` + `test/unit/security-check.test.js` + `test/unit/security-expanded.test.js` | 已检查配置基线；已补 22 个扩展安全测试覆盖敏感文件保护、无硬编码密钥、环境变量校验、依赖安全、输入校验、认证安全、错误处理安全、日志安全；需依赖审计、Secret 扫描、越权/重放/上传/隐私泄露测试 |
 | OPS-004 | 性能压测 | 🟡 脚本完成，压测报告待执行 | `scripts/perf-smoke.js` + `npm run ops:perf-smoke` | 支持并发、p50/p95、错误率；需 Feed/评论/仪式会话场景报告 |
-| OPS-005 | 灰度开关与回滚 | 🟡 能力具备，回滚演练待执行 | `src/shared/feature-flags.js` + `src/modules/admin/route.js` + `docs/ops-runbook.md` 回滚章节 | 10 个 feature flag，需预发布关闭发布/评论/报名/订单演练 |
-| OPS-006 | 生产监控与告警 | 🟡 能力具备，告警联调待执行 | `/api/v1/ready` + `/api/v1/metrics` + `scripts/alert-check.js` | 记录请求数、状态码、错误率、耗时；需 Dashboard/Webhook 告警记录 |
+| OPS-005 | 灰度开关与回滚 | 🟡 能力具备，回滚演练待执行 | `src/shared/feature-flags.js` + `src/modules/admin/route.js` + `docs/ops-runbook.md` 回滚章节 + `test/unit/feature-flags.test.js` | 10 个 feature flag；已补 30 个测试覆盖所有标志定义、默认值、中文描述、运行时切换、环境变量覆盖、getAllFlags、requireFeature 中间件；需预发布关闭发布/评论/报名/订单演练 |
+| OPS-006 | 生产监控与告警 | 🟡 能力具备，告警联调待执行 | `/api/v1/ready` + `/api/v1/metrics` + `scripts/alert-check.js` + `test/unit/monitoring-endpoints.test.js` | 记录请求数、状态码、错误率、耗时；已补 17 个测试覆盖指标快照结构、请求记录、路由跟踪、告警评估、payload 构建、参数解析、健康检查格式、指标端点格式；需 Dashboard/Webhook 告警记录 |
 | OPS-007 | 隐私与数据删除验收 | 🟡 脚本完成，隐私验收待执行 | `scripts/data-deletion.js` + `npm run ops:data-export` / `ops:data-delete` | 支持用户数据导出和删除；需注销、删除、日志脱敏验收记录 |
 | OPS-008 | 前后端契约回归 | 🟡 测试骨架完成，Flutter 联调待执行 | `test/contract/flutter-contract.test.js` | 覆盖主链路契约骨架；需当前 Flutter 页面真实联调报告 |
 
@@ -344,6 +344,9 @@ backend-node/
 │       ├── openapi-compliance.test.js          # OpenAPI 合规测试
 │       ├── acceptance-flow.test.js             # 验收流程端到端测试
 │       ├── npm-scripts.test.js                 # npm scripts 验证测试
+│       ├── feature-flags.test.js               # Feature flags 测试
+│       ├── security-expanded.test.js           # 扩展安全检查测试
+│       ├── monitoring-endpoints.test.js        # 监控端点测试
 │       ├── db-backup.test.js                   # 数据库备份脚本单元测试
 │       ├── db-restore.test.js                  # 数据库恢复脚本单元测试
 │       ├── db-backup-restore-flow.test.js      # 备份恢复 dry-run 流程测试
@@ -424,6 +427,7 @@ backend-node/
 |------|------|
 | 2026-06-05 | 本轮验收推进：新增 `test/unit/seed-validation.test.js`（29 个 seed 脚本验证测试覆盖实体覆盖、数据完整性、幂等操作）、`test/unit/backup-manifest.test.js`（13 个备份 manifest 验证测试）、`test/unit/perf-report.test.js`（14 个性能报告生成测试）、`test/unit/monitoring-validation.test.js`（16 个监控指标验证测试）、`test/unit/openapi-compliance.test.js`（26 个 OpenAPI 合规测试）；总测试数从 195 增至 336；DB-001/OPS-VERIFY-001~003/FE-CONTRACT-001 更新验收证据 |
 | 2026-06-05 | 本轮验收推进：新增 `test/unit/db-verification-queries.test.js`（20 个 DB 验证查询测试覆盖 migration 验证、seed 验证、数据完整性检查）、`test/unit/acceptance-flow.test.js`（25 个验收流程端到端测试覆盖脚本存在性、npm scripts、文档完整性、OpenAPI spec、Prisma schema、CI 配置、Docker 配置）、`test/unit/npm-scripts.test.js`（27 个 npm scripts 验证测试覆盖脚本定义、目标文件存在性、依赖完整性、包元数据）；总测试数从 336 增至 408；DB-001 更新验收证据 |
+| 2026-06-05 | 本轮验收推进：新增 `test/unit/feature-flags.test.js`（30 个 feature flags 测试覆盖所有标志定义、默认值、中文描述、运行时切换、环境变量覆盖、requireFeature 中间件）、`test/unit/security-expanded.test.js`（20 个扩展安全测试覆盖敏感文件保护、无硬编码密钥、环境变量校验、依赖安全、输入校验、认证安全、错误处理安全、日志安全）、`test/unit/monitoring-endpoints.test.js`（17 个监控端点测试覆盖指标快照结构、请求记录、路由跟踪、告警评估、payload 构建、参数解析）；总测试数从 408 增至 475；OPS-003/OPS-005/OPS-006 更新验收证据 |
 | 2026-06-05 | 本轮验收收敛：新增 `scripts/acceptance-gate.js`、`test/unit/acceptance-gate.test.js` 和 `npm run ops:acceptance-gate`，组合执行 preflight、证据状态和 seal 验签的最终发布门禁；同步将 gate 纳入 `scripts/acceptance-preflight.js` 检查，并更新 `docs/release-acceptance-runbook.md`；上线验收进度保持 5/11 |
 | 2026-06-05 | 本轮验收收敛：扩展 `scripts/acceptance-preflight.js` 和 `test/unit/acceptance-preflight.test.js`，将 `scripts/acceptance-seal.js` 与 `npm run ops:acceptance-seal` 纳入外部验收前本地预检查，避免证据包封存能力漏检；上线验收进度保持 5/11 |
 | 2026-06-05 | 本轮验收收敛：新增 `scripts/acceptance-seal.js`、`test/unit/acceptance-seal.test.js` 和 `npm run ops:acceptance-seal`，可对验收证据包生成 `acceptance-seal.json` SHA-256 封存文件，并支持后续 verify 检测证据包是否被改动；同步更新 `docs/release-acceptance-runbook.md`；上线验收进度保持 5/11 |
