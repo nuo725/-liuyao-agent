@@ -362,6 +362,7 @@ backend-node/
 │       ├── env.test.js                         # 环境配置测试
 │       ├── prisma-client.test.js               # Prisma 客户端测试
 │       ├── outbox.test.js                      # Outbox worker 测试
+│       ├── recommend.test.js                   # 推荐引擎测试
 │       ├── db-backup.test.js                   # 数据库备份脚本单元测试
 │       ├── db-restore.test.js                  # 数据库恢复脚本单元测试
 │       ├── db-backup-restore-flow.test.js      # 备份恢复 dry-run 流程测试
@@ -450,6 +451,7 @@ backend-node/
 | 2026-06-05 | 本轮验收推进：新增 `test/unit/auth-middleware.test.js`（18 个认证中间件测试覆盖 requireAuth（有效 token、无 header、空 header、过期 token、无效 token、无 Bearer 前缀）、optionalAuth（有效 token、无 token 降级、无效 token 降级、过期 token 降级）、generateTokens（token 生成、userId 包含、refresh 类型、过期时间））；总测试数从 590 增至 608 |
 | 2026-06-05 | 本轮验收推进：新增 `test/unit/request-id.test.js`（6 个请求 ID 中间件测试覆盖 req_ 前缀、自定义 header、响应头设置、唯一性、next 调用、长度）、`test/unit/validate-middleware.test.js`（9 个校验中间件测试覆盖 body/query/params 校验、必填字段、validated 对象管理）、`test/unit/logger.test.js`（5 个日志模块测试覆盖实例创建、info/error/warn/debug 方法、模块名）；总测试数从 608 增至 628 |
 | 2026-06-05 | 本轮验收推进：新增 `test/unit/env.test.js`（15 个环境配置测试覆盖 getEnv 返回值、所有必需字段、类型强制、缓存）、`test/unit/prisma-client.test.js`（10 个 Prisma 客户端测试覆盖实例创建、缓存、模型存在性）、`test/unit/outbox.test.js`（9 个 Outbox worker 测试覆盖 runOnce/processJob 函数、通知/审核/未知任务类型处理、配置）；总测试数从 628 增至 662 |
+| 2026-06-05 | 本轮验收推进：新增 `test/unit/recommend.test.js`（19 个推荐引擎测试覆盖 scoreRecommended（近期/互动/内容质量/卡片/图片/标签多样性）、scoreDeep（深度/讨论/反思）、rankPosts 排序、applyDiversityFilter 作者/标签限制）；总测试数从 662 增至 681 |
 | 2026-06-05 | 本轮验收收敛：新增 `scripts/acceptance-gate.js`、`test/unit/acceptance-gate.test.js` 和 `npm run ops:acceptance-gate`，组合执行 preflight、证据状态和 seal 验签的最终发布门禁；同步将 gate 纳入 `scripts/acceptance-preflight.js` 检查，并更新 `docs/release-acceptance-runbook.md`；上线验收进度保持 5/11 |
 | 2026-06-05 | 本轮验收收敛：扩展 `scripts/acceptance-preflight.js` 和 `test/unit/acceptance-preflight.test.js`，将 `scripts/acceptance-seal.js` 与 `npm run ops:acceptance-seal` 纳入外部验收前本地预检查，避免证据包封存能力漏检；上线验收进度保持 5/11 |
 | 2026-06-05 | 本轮验收收敛：新增 `scripts/acceptance-seal.js`、`test/unit/acceptance-seal.test.js` 和 `npm run ops:acceptance-seal`，可对验收证据包生成 `acceptance-seal.json` SHA-256 封存文件，并支持后续 verify 检测证据包是否被改动；同步更新 `docs/release-acceptance-runbook.md`；上线验收进度保持 5/11 |
