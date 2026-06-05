@@ -8,22 +8,26 @@
 - 提交后再次确认工作区状态；若仍有未提交内容，必须在进度说明中写清原因。
 
 > 依据：[BACKEND_TDL_AND_DELIVERY_PLAN.md](../BACKEND_TDL_AND_DELIVERY_PLAN.md) · [PRODUCT_PRD.md](../PRODUCT_PRD.md)
-> 最后更新：2026-06-04
+> 最后更新：2026-06-05
 
 ---
 
 ## 总览
 
+> 状态口径：下方 M0~Phase 9 的任务表记录“功能实现进度”。是否可宣布上线完成，必须再通过“上线验收矩阵”。脚本、dry-run、mock adapter、单元测试通过只能算能力具备，不能替代真实迁移、预发布演练、Flutter 联调和生产 provider 验收。
+
 | 里程碑 | 目标周期 | 当前状态 | 进度 |
 |--------|---------|---------|------|
-| M0：工程可持续 | 第 1 周 | ✅ 已完成 | 15/15 |
+| M0：工程可持续 | 第 1 周 | 🟡 功能完成，契约/迁移待验收 | 15/15 |
 | M1：身份与账本 | 第 2 周 | ✅ 已完成 | 21/21 |
 | M2：仪式数据链路 | 第 3 周 | ✅ 已完成 | 9/9 |
 | M3：社区生产链路 | 第 4~5 周 | ✅ 已完成 | 12/12 |
 | M4：现有 UI 业务能力接入 | 第 6~7 周 | ✅ 已完成 | 20/20 |
-| M5：上线准备 | 第 8 周 | ✅ 已完成 | 8/8 |
+| M5：上线准备 | 第 8 周 | 🟡 能力具备，验收待执行 | 8/8 |
 
-**整体进度：92/92 个任务完成（100%）**
+**功能实现进度：92/92 个任务完成（100%）**
+
+**上线验收进度：0/11 项完成（0%）**
 
 ---
 
@@ -33,11 +37,11 @@
 
 | ID | 任务 | 状态 | 交付物 | 备注 |
 |----|------|------|--------|------|
-| BE-000 | 冻结正式公共 API 口径 | ✅ 已完成 | `openapi/openapi.yaml` | OpenAPI 3.1，覆盖全部 12 模块 |
+| BE-000 | 冻结正式公共 API 口径 | 🟡 功能完成，口径待验收 | `openapi/openapi.yaml` | 当前实现为 `/api/v1` + `success/data` envelope；TDL 要求 `/v1` + `code/message/data/requestId`，需 CONTRACT-001 决议 |
 | BE-001 | 重构 Express 启动结构 | ✅ 已完成 | `src/app.js` + `src/server.js` | 测试可导入 app，不会自动监听端口 |
 | BE-002 | 建立环境配置与 Secret 规范 | ✅ 已完成 | `.env.example` + `src/config/env.js` | Zod 校验，缺少必需变量时启动失败 |
 | BE-003 | 接入 PostgreSQL 与 Prisma | ✅ 已完成 | `src/db/prisma.js` + Prisma Client | `/health` 可区分应用与 PostgreSQL 状态 |
-| BE-004 | 建立 Prisma Schema 与迁移基线 | ✅ 已完成 | `prisma/schema.prisma` | 30 个模型，覆盖所有业务域 |
+| BE-004 | 建立 Prisma Schema 与迁移基线 | 🟡 Schema 完成，迁移待补 | `prisma/schema.prisma` + `seed.js` | 缺 `prisma/migrations/`，需 DB-001 生成并验证迁移基线 |
 | BE-005 | 建立统一响应与错误处理中间件 | ✅ 已完成 | `src/shared/api-error.js` + `response.js` + `error-handler.js` | 统一 envelope 和 requestId |
 | BE-006 | 建立认证中间件 | ✅ 已完成 | `src/middleware/auth.js` | JWT 校验、可选认证、权限门禁 |
 | BE-007 | 建立参数校验 | ✅ 已完成 | `src/middleware/validate.js` | Zod-based，非法定返回 `40001` |
@@ -46,10 +50,10 @@
 | BE-010 | 建立 CI | ✅ 已完成 | `.github/workflows/backend-node-ci.yml` + `eslint.config.js` | GitHub Actions 执行 install、Prisma generate、lint、test |
 | BE-011 | 清理 EN 占位与独立解读服务直连耦合 | ✅ 已完成 | — | Node 后端无旧代码残留 |
 | BE-012 | 建立 PostgreSQL 开发环境 | ✅ 已完成 | `docker-compose.yml` + `.env` | PostgreSQL 16，一键启动 |
-| BE-013 | 建立数据库幂等与敏感接口限流 | ✅ 已完成 | `src/middleware/idempotency.js` + `rate-limit.js` | 内存实现，生产需迁移至 DB |
+| BE-013 | 建立数据库幂等与敏感接口限流 | 🟡 能力具备，生产策略待验收 | `src/middleware/idempotency.js` + `rate-limit.js` | 当前有幂等与限流能力；敏感接口生产限流需 DB 或网关策略确认 |
 | BE-014 | 建立 PostgreSQL Outbox / Jobs 机制 | ✅ 已完成 | `OutboxJob` 模型 + `src/workers/outbox.js` | 支持锁定、重试、失败记录；通知推送任务已写入 outbox |
 
-**Phase 0 完成 ✅**（15/15）
+**Phase 0 功能进度：15/15；上线验收见 CONTRACT-001、DB-001、RATE-001**
 
 ---
 
@@ -198,16 +202,16 @@
 
 | ID | 任务 | 状态 | 交付物 | 备注 |
 |----|------|------|--------|------|
-| OPS-001 | 数据迁移与种子数据 | ✅ 已完成 | `prisma/seed.js` | 种子脚本已创建 |
-| OPS-002 | 自动化备份与恢复演练 | ✅ 已完成 | `scripts/db-backup.js` + `scripts/db-restore.js` + `docs/ops-runbook.md` | 支持 dry-run、备份 manifest、恢复演练命令；真实恢复需 PostgreSQL 环境 |
-| OPS-003 | 安全检查 | ✅ 已完成 | `scripts/security-check.js` + `npm run ops:security-check` | 检查 PostgreSQL URL、JWT Secret、生产默认项、Git ignore 和 lockfile |
-| OPS-004 | 性能压测 | ✅ 已完成 | `scripts/perf-smoke.js` + `npm run ops:perf-smoke` | 支持并发请求、p50/p95、错误率和阈值失败退出 |
-| OPS-005 | 灰度开关与回滚 | ✅ 已完成 | `src/shared/feature-flags.js` + `src/modules/admin/route.js` + `docs/ops-runbook.md` 回滚章节 | 10 个 feature flag，支持环境变量和 API 运行时切换 |
-| OPS-006 | 生产监控与告警 | ✅ 已完成 | `/api/v1/ready` + `/api/v1/metrics` + `scripts/alert-check.js` | 记录请求数、状态码、错误率、耗时，并支持 webhook 告警检查 |
-| OPS-007 | 隐私与数据删除验收 | ✅ 已完成 | `scripts/data-deletion.js` + `npm run ops:data-export` / `ops:data-delete` | 支持用户数据导出和删除，覆盖全部 23 个数据表 |
-| OPS-008 | 前后端契约回归 | ✅ 已完成 | `test/contract/flutter-contract.test.js` | 覆盖 Auth→Profile→Credits→Ritual→Community→Notification 主链路 |
+| OPS-001 | 数据迁移与种子数据 | 🟡 Seed 完成，迁移待验收 | `prisma/seed.js` | 种子脚本已创建；缺 migration 基线和真实 PostgreSQL migrate/seed 记录 |
+| OPS-002 | 自动化备份与恢复演练 | 🟡 能力具备，演练待执行 | `scripts/db-backup.js` + `scripts/db-restore.js` + `docs/ops-runbook.md` | 支持 dry-run、备份 manifest、恢复命令；需预发布恢复记录 |
+| OPS-003 | 安全检查 | 🟡 本地检查完成，安全验收待执行 | `scripts/security-check.js` + `npm run ops:security-check` | 已检查配置基线；需依赖审计、Secret 扫描、越权/重放/上传/隐私泄露测试 |
+| OPS-004 | 性能压测 | 🟡 脚本完成，压测报告待执行 | `scripts/perf-smoke.js` + `npm run ops:perf-smoke` | 支持并发、p50/p95、错误率；需 Feed/评论/仪式会话场景报告 |
+| OPS-005 | 灰度开关与回滚 | 🟡 能力具备，回滚演练待执行 | `src/shared/feature-flags.js` + `src/modules/admin/route.js` + `docs/ops-runbook.md` 回滚章节 | 10 个 feature flag，需预发布关闭发布/评论/报名/订单演练 |
+| OPS-006 | 生产监控与告警 | 🟡 能力具备，告警联调待执行 | `/api/v1/ready` + `/api/v1/metrics` + `scripts/alert-check.js` | 记录请求数、状态码、错误率、耗时；需 Dashboard/Webhook 告警记录 |
+| OPS-007 | 隐私与数据删除验收 | 🟡 脚本完成，隐私验收待执行 | `scripts/data-deletion.js` + `npm run ops:data-export` / `ops:data-delete` | 支持用户数据导出和删除；需注销、删除、日志脱敏验收记录 |
+| OPS-008 | 前后端契约回归 | 🟡 测试骨架完成，Flutter 联调待执行 | `test/contract/flutter-contract.test.js` | 覆盖主链路契约骨架；需当前 Flutter 页面真实联调报告 |
 
-**Phase 8 进度：8/8**
+**Phase 8 功能进度：8/8；上线验收：0/8**
 
 ---
 
@@ -226,6 +230,28 @@
 | REVIEW-001 | 周期性情绪与成长报告 | ✅ 已完成 | `GET /ritual/me/periodic-review` | 输出近 N 天主题、反馈与关注点回顾 |
 
 **Phase 9 进度：7/7**
+
+---
+
+## 上线验收矩阵
+
+> 依据 TDL 6.4、6.5、6.6、6.8 与第 9 章最终验收。只有下列验收项完成后，后端才可从“功能实现完成”进入“上线完成”。
+
+| ID | 验收项 | 状态 | 验收证据 | 当前缺口 |
+|----|--------|------|----------|----------|
+| CONTRACT-001 | 正式 API 口径决议 | 🔲 未开始 | `/v1` vs `/api/v1`、`code/message/data/requestId` vs `success/data` 的决议文档与兼容策略 | 当前实现与 TDL 口径不一致 |
+| DB-001 | Prisma migration 基线与回滚 | 🔲 未开始 | `prisma/migrations/`、`migrate dev/deploy` 记录、失败恢复或向前修复说明 | 当前只有 `schema.prisma` 和 `seed.js` |
+| RATE-001 | 生产级敏感接口限流策略 | 🔲 未开始 | DB 限流表或部署网关策略、验证码/登录失败/评论高频用例记录 | 当前主要是内存限流能力 |
+| AGENT-001 | 独立 Agent 接入边界与联调计划 | 🔲 未开始 | 业务后端与 Agent 的认证、超时、重试、降级、结果缓存和 SSE 边界文档 | 业务后端范围与 PRD 生产数据流需明确拆分 |
+| TEST-001 | API 集成测试主链路 | 🔲 未开始 | 登录、仪式、社区、通知、同频、活动、媒体、资料、账单等 API 集成测试报告 | 当前以单元测试和契约骨架为主 |
+| TEST-002 | 安全测试主链路 | 🔲 未开始 | 无 Token/过期 Token/越权/Idempotency 重放/非法上传/私密泄露/审核绕过测试记录 | 当前仅有本地安全配置检查 |
+| OPS-VERIFY-001 | 备份恢复演练 | 🔲 未开始 | 预发布数据库备份文件、恢复命令、恢复后校验记录 | 当前只有 dry-run 脚本 |
+| OPS-VERIFY-002 | 性能压测报告 | 🔲 未开始 | Feed、帖子详情、评论创建、仪式会话创建的 P95 与错误率报告 | 当前只有压测脚本 |
+| OPS-VERIFY-003 | 监控 Dashboard 与告警联调 | 🔲 未开始 | Dashboard 截图/链接、错误率和延迟告警触发记录、Webhook 记录 | 当前只有 `/metrics` 与 alert-check 脚本 |
+| FE-CONTRACT-001 | Flutter 主页面契约回归 | 🔲 未开始 | 当前 Flutter 页面 Auth→Profile→Ritual→Community→Notification→Match→Activity 的真实后端联调记录 | 当前未记录前端真实联调结果 |
+| ADAPTER-001 | 生产外部服务适配验收 | 🔲 未开始 | SMS、微信/QQ、对象存储、Push、支付回调验签的生产或预发布配置与回归记录 | 当前多为 mock/dev fallback |
+
+**上线验收进度：0/11**
 
 ---
 
@@ -307,29 +333,31 @@ backend-node/
 
 | 风险 | 当前状态 | 处理方案 |
 |------|---------|---------|
-| 三套 API 口径并存 | ✅ 已解决 | OpenAPI 冻结正式契约，旧路由保留兼容层 |
+| API 口径与 TDL 不一致 | ⚠️ 待决议 | CONTRACT-001 决定 `/v1` vs `/api/v1`、响应 envelope 与旧路由兼容策略 |
 | 私密问题泄露到社区 | ✅ 已落地 | 社区发布校验卡归属与 communitySafeContent，只返回公开版 cardPreview |
 | 社区内容安全不足 | ✅ 已解决 | 发布/评论前审核、举报/屏蔽、审核记录和审核后台已实现 |
 | 同时开发全部模块 | ✅ 已避免 | 严格按 M0→M5 里程碑推进 |
-| 缺少自动化测试 | ⚠️ 部分解决 | CI、lint、基础测试与审核规则测试已补；业务集成测试待扩展 |
+| 缺少自动化测试 | ⚠️ 部分解决 | CI、lint、基础测试、契约骨架已补；API 集成测试与安全测试待补 |
 | 无 Docker/PostgreSQL 环境 | ⚠️ 当前限制 | Docker Compose、备份/恢复脚本已创建，需在有 Docker 环境时运行迁移、seed 与恢复演练 |
+| 生产适配与预发布演练未完成 | ⚠️ 待验收 | ADAPTER-001、OPS-VERIFY-001~003 补齐真实 provider、恢复、压测、监控告警记录 |
 | 当前环境 npm 全局命令不可用 | ⚠️ 当前限制 | 使用内置 Node 直接调用本地 CLI；Git 已通过 `D:\Git\cmd\git.exe` 可用 |
 
 ---
 
 ## 下一步行动
 
-### 优先级 P0（让前端真正可用）
-1. **启动 PostgreSQL** → `docker compose up -d` → `npm run db:migrate` → `npm run db:seed`
-2. **跑一次真实迁移/种子验收** → 当前已通过 Prisma generate，待数据库环境验证迁移和 seed
-3. **补真实数据库迁移文件** → 当前 schema 可 generate，待连接 PostgreSQL 后执行 migrate
+### 优先级 P0（修正完成口径并补上线验收）
+1. **CONTRACT-001** → 决议正式 API base path、统一响应结构、错误码和旧路由兼容策略。
+2. **DB-001** → 生成 Prisma migration 基线，执行 migrate/seed，并记录回滚或向前修复方案。
+3. **TEST-001 / TEST-002** → 补 API 集成测试与安全测试，覆盖 TDL 6.5 中的主链路。
+4. **FE-CONTRACT-001** → 用当前 Flutter 页面跑真实后端联调，形成契约回归记录。
 
-### 优先级 P1（补齐 UI 后端能力）
-4. **补业务集成测试** → 覆盖审核、活动、账单、公开主页、通知、分享和 Analytics
-5. **OPS-005、OPS-007、OPS-008** → 灰度回滚、隐私删除验收、前后端契约回归
+### 优先级 P1（预发布演练）
+5. **OPS-VERIFY-001 ~ 003** → 预发布恢复演练、性能压测报告、Dashboard/告警联调记录。
+6. **ADAPTER-001** → SMS、社交登录、S3、Push、支付回调验签的生产/预发布适配验收。
 
-### 优先级 P2（长期价值）
-6. **Phase 9** → 匿名身份、反馈帖、推荐深化
+### 优先级 P2（Agent 与后续联调）
+7. **AGENT-001** → 明确业务后端与独立 Agent 的接入边界、超时重试、降级和 SSE 后续计划。
 
 ---
 
@@ -337,6 +365,7 @@ backend-node/
 
 | 日期 | 内容 |
 |------|------|
+| 2026-06-05 | 本轮文档校准：根据 TDL/PRD 将进度拆分为“功能实现进度”和“上线验收进度”；新增 11 项上线验收矩阵；修正 API 口径、迁移、限流、OPS dry-run、联调和生产适配的完成状态 |
 | 2026-06-04 | 本轮追加：补 OPS-004 性能压测脚本、OPS-006 ready/metrics 监控端点与告警检查脚本；同步 OpenAPI、Runbook 和测试；更新进度至 82/92 |
 | 2026-06-04 | 本轮完成：OPS-005 灰度开关（10 个 feature flag + admin API + 回滚手册）、OPS-007 隐私删除（数据导出/删除脚本）、OPS-008 契约回归测试（Flutter 主链路覆盖）；更新进度至 85/92 |
 | 2026-06-04 | 本轮完成：Phase 9 P2 功能 — IDENTITY-001 匿名身份、COMMUNITY-013 匿名发布、FEEDBACK-001 解读反馈、COMMUNITY-014 反馈帖、REVIEW-001 周期回顾；更新进度至 90/92 |
