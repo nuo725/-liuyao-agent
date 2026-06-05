@@ -184,6 +184,18 @@ This item completes only after provider request IDs or staging logs are attached
 
 ## Reporting Template
 
+Generate a Markdown evidence template:
+
+```powershell
+npm run ops:acceptance-evidence -- --item=DB-001 --environment=staging --commit=<commit-sha>
+```
+
+Generate templates for every remaining item:
+
+```powershell
+npm run ops:acceptance-evidence -- --environment=staging --commit=<commit-sha>
+```
+
 Use this format in `PROGRESS.md` update notes or release notes:
 
 ```text

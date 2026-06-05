@@ -24,6 +24,7 @@
     "ops:perf-smoke": "node scripts/perf-smoke.js",
     "ops:perf-scenarios": "node scripts/perf-scenarios.js",
     "ops:alert-check": "node scripts/alert-check.js",
+    "ops:acceptance-evidence": "node scripts/acceptance-evidence.js",
     "ops:data-export": "node scripts/data-deletion.js --action=export",
     "ops:data-delete": "node scripts/data-deletion.js --action=delete --confirm",
     "worker:outbox": "node src/workers/outbox.js"
