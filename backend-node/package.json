@@ -26,6 +26,7 @@
     "ops:alert-check": "node scripts/alert-check.js",
     "ops:acceptance-evidence": "node scripts/acceptance-evidence.js",
     "ops:acceptance-evidence:check": "node scripts/acceptance-evidence-validate.js",
+    "ops:acceptance-package": "node scripts/acceptance-package.js",
     "ops:data-export": "node scripts/data-deletion.js --action=export",
     "ops:data-delete": "node scripts/data-deletion.js --action=delete --confirm",
     "worker:outbox": "node src/workers/outbox.js"

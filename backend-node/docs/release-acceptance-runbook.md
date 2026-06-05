@@ -196,6 +196,17 @@ Generate templates for every remaining item:
 npm run ops:acceptance-evidence -- --environment=staging --commit=<commit-sha>
 ```
 
+Create a file-based release evidence package:
+
+```powershell
+npm run ops:acceptance-package -- --out=release-evidence/staging-<date> --environment=staging --commit=<commit-sha>
+```
+
+The package contains:
+
+- `acceptance-evidence.md` for human-filled evidence.
+- `acceptance-manifest.json` for release tracking and audit metadata.
+
 Validate a completed evidence Markdown file before marking an item done:
 
 ```powershell
