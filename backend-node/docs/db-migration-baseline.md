@@ -4,10 +4,11 @@ Date: 2026-06-05
 
 ## Baseline
 
-The initial Prisma migration baseline is:
+The Prisma migration baseline currently includes:
 
 ```text
 prisma/migrations/202606050001_initial_schema/migration.sql
+prisma/migrations/202606050002_rate_limit_buckets/migration.sql
 ```
 
 It was generated from the current `prisma/schema.prisma` with:

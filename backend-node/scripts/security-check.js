@@ -24,6 +24,12 @@ function runChecks({ env = process.env, rootDir = process.cwd(), gitignoreText =
     !(nodeEnv === 'production' && env.PAYMENT_CALLBACK_SECRET === 'dev_callback_secret'),
     'fail',
   );
+  addCheck(
+    checks,
+    'Production rate limit store is database',
+    !(nodeEnv === 'production' && (env.RATE_LIMIT_STORE || 'memory') !== 'database'),
+    'fail',
+  );
   addCheck(checks, 'Local .env is ignored by Git', includesIgnore(gitignore, '/backend-node/.env'), 'fail');
   addCheck(checks, 'Uploaded media is ignored by Git', includesIgnore(gitignore, '/backend-node/uploads/'), 'fail');
   addCheck(checks, 'Database backups are ignored by Git', includesIgnore(gitignore, '/backend-node/backups/'), 'fail');

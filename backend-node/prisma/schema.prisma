@@ -769,6 +769,21 @@ model IdempotencyKey {
   @@map("idempotency_keys")
 }
 
+model RateLimitBucket {
+  id          String   @id @default(cuid())
+  identifier  String
+  action      String
+  windowStart DateTime @map("window_start")
+  count       Int      @default(0)
+  expiresAt   DateTime @map("expires_at")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@unique([identifier, action])
+  @@index([expiresAt])
+  @@map("rate_limit_buckets")
+}
+
 model OutboxJob {
   id          String    @id @default(cuid())
   type        String

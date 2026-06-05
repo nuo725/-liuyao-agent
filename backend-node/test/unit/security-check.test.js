@@ -19,6 +19,7 @@ describe('Security check script', () => {
         JWT_SECRET: 'prod-random-value-with-48-chars-abc123456789',
         SMS_PROVIDER: 'aliyun',
         PAYMENT_CALLBACK_SECRET: 'prod-callback-secret-value',
+        RATE_LIMIT_STORE: 'database',
       },
     });
 
@@ -35,6 +36,7 @@ describe('Security check script', () => {
         JWT_SECRET: 'change-me',
         SMS_PROVIDER: 'test',
         PAYMENT_CALLBACK_SECRET: 'dev_callback_secret',
+        RATE_LIMIT_STORE: 'memory',
       },
     });
 
