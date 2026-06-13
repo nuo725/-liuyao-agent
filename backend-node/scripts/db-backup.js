@@ -37,13 +37,15 @@ function parseBackupArgs(argv) {
   };
 }
 
-function runBackup({
-  databaseUrl = process.env.DATABASE_URL,
-  pgDump = process.env.PG_DUMP_BIN || 'pg_dump',
-  outputDir = 'backups',
-  dryRun = false,
-  cwd = process.cwd(),
-} = {}) {
+function runBackup(options = {}) {
+  const {
+    pgDump = process.env.PG_DUMP_BIN || 'pg_dump',
+    outputDir = 'backups',
+    dryRun = false,
+    cwd = process.cwd(),
+  } = options;
+  const databaseUrl = Object.hasOwn(options, 'databaseUrl') ? options.databaseUrl : process.env.DATABASE_URL;
+
   if (!databaseUrl) {
     return { ok: false, error: 'DATABASE_URL is required' };
   }

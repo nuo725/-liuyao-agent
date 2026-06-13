@@ -43,13 +43,15 @@ function buildRestoreCommand({ inputFile, databaseUrl, clean }) {
   return { command, commandArgs, isSql };
 }
 
-function runRestore({
-  file,
-  databaseUrl = process.env.DATABASE_URL,
-  dryRun = false,
-  clean = false,
-  cwd = process.cwd(),
-} = {}) {
+function runRestore(options = {}) {
+  const {
+    file,
+    dryRun = false,
+    clean = false,
+    cwd = process.cwd(),
+  } = options;
+  const databaseUrl = Object.hasOwn(options, 'databaseUrl') ? options.databaseUrl : process.env.DATABASE_URL;
+
   if (!databaseUrl) {
     return { ok: false, error: 'DATABASE_URL is required' };
   }
