@@ -8,7 +8,7 @@ This backend owns the authoritative business state for `问一问`: user identit
 
 The independent Liuyao Agent backend owns interpretation generation, follow-up generation, structured Liuyao analysis, emotional-support wording, model routing, prompt management, and high-risk output generation.
 
-For this backend delivery round, Agent generation and content SSE are not implemented as production code. The backend keeps stable data containers and a future orchestration boundary so the Agent service can be connected in a separate integration task.
+For this backend delivery round, Agent generation and content SSE are not implemented as production behavior. The backend keeps stable data containers and now includes a service-side Agent adapter boundary in `src/adapters/liuyao-agent.js` so the independent Agent service can be connected without exposing Agent credentials to Flutter.
 
 ## Source Alignment
 
@@ -18,7 +18,7 @@ The backend TDL explicitly excludes interpretation generation, follow-up generat
 
 The resolved boundary is:
 
-- Current acceptance: the business backend provides durable ritual data, credit/idempotency control, read permissions, safe community-card storage, and placeholders for future streaming routes.
+- Current acceptance: the business backend provides durable ritual data, database-backed idempotency capability, credit control, read permissions, safe community-card storage, an Agent request/response adapter, and placeholders for future streaming routes.
 - Future integration: the business backend will orchestrate Agent calls after the independent Agent service publishes a reviewed contract and staging endpoint.
 - The Flutter client must not hold Agent credentials in production.
 
@@ -167,7 +167,7 @@ Metrics should include Agent request count, first event latency, total latency, 
 
 1. Agent team publishes OpenAPI or JSON Schema for initial interpretation, follow-up, public summary, and SSE events.
 2. Backend team adds contract fixtures that validate request/response mapping against `InterpretationCard`, `FollowupMessage`, and `SafetyAssessment`.
-3. Backend team implements an Agent adapter behind a feature flag, with service authentication and timeout/retry policy.
+3. Backend team wires `src/adapters/liuyao-agent.js` into ritual orchestration behind a feature flag after the independent Agent service publishes its reviewed contract.
 4. Staging runs full flow: create session, call Agent, stream/complete result, persist card, continue follow-up, publish public-safe card, emit notification if async.
 5. Acceptance evidence is added to `PROGRESS.md`: staging endpoint, contract fixtures, timeout/retry test result, SSE reconnect check, and public-card privacy check.
 
@@ -177,11 +177,13 @@ Metrics should include Agent request count, first event latency, total latency, 
 - No prompt templates.
 - No local interpretation generator.
 - No production content SSE implementation.
+- No live Agent orchestration until a staging Agent endpoint and contract fixtures exist.
 - No client-side Agent credential handling.
 - No direct Flutter-to-Agent production path.
 
 ## Acceptance Evidence for AGENT-001
 
 - This document records the PRD/TDL boundary decision.
+- `src/adapters/liuyao-agent.js` provides the initial server-side adapter boundary for configuration checks, safe request construction, timeout handling, and persistable response normalization.
 - It defines service authentication, request/response shape, timeout/retry/idempotency rules, degradation behavior, result persistence, SSE relay boundaries, and future integration steps.
 - It allows backend delivery to continue without falsely claiming Agent generation is complete.

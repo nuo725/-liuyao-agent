@@ -4,7 +4,7 @@ This is the main business API backend for the Flutter app.
 
 ## Prerequisites
 
-- Node.js 20 LTS or newer
+- Node.js 24 or compatible active LTS
 - Docker Desktop, recommended for PostgreSQL
 
 ## Local Setup
@@ -47,6 +47,12 @@ npm run db:generate
 npm run db:deploy
 npm run db:seed
 ```
+
+## Production Notes
+
+- Set `NODE_ENV=production`.
+- Set `IDEMPOTENCY_STORE=database` so write-route `Idempotency-Key` replay data is stored in PostgreSQL.
+- Keep `LIUYAO_AGENT_URL` and `LIUYAO_AGENT_TOKEN` empty until the independent Liuyao Agent service has a staging endpoint and reviewed contract.
 
 ## Health Check
 

@@ -9,6 +9,7 @@ const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   LOG_LEVEL: z.enum(['trace', 'debug', 'info', 'warn', 'error', 'fatal']).default('info'),
   RATE_LIMIT_STORE: z.enum(['memory', 'database']).default('memory'),
+  IDEMPOTENCY_STORE: z.enum(['memory', 'database']).default('memory'),
 
   DATABASE_URL: z.string().min(1).refine(
     (v) => v.startsWith('postgresql://') || v.startsWith('postgres://'),
@@ -30,6 +31,7 @@ const envSchema = z.object({
     'Must be a valid URL or empty'
   ),
   LIUYAO_AGENT_TOKEN: z.string().optional().default(''),
+  AGENT_TOTAL_TIMEOUT_MS: z.coerce.number().default(90000),
 });
 
 let _env = null;

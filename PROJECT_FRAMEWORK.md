@@ -15,7 +15,6 @@
 ├── PRODUCT_PRD.md                    # 产品需求文档
 ├── README.md                         # 项目说明
 ├── render.yaml                       # Render 部署配置
-├── backend/                          # Python 六爻推理后端（旧版）
 ├── backend-node/                     # Node.js 业务后端（主后端）
 ├── docs/                             # 项目文档
 ├── frontend/                         # Flutter 前端（未纳入）
@@ -78,38 +77,6 @@ docs/
     ├── PRD_v0.7.0_tag_identity_growth.md  # PRD 历史版本
     └── VERSIONING_AND_ROLLBACK.md    # 版本管理与回滚策略
 ```
-
----
-
-## backend/ — Python 六爻推理后端（旧版）
-
-```
-backend/
-├── Procfile                          # Heroku/Render 进程声明
-├── README.md                         # 后端说明
-├── requirements.txt                  # Python 依赖
-├── run_backend.bat                   # Windows 启动脚本
-├── knowledge.py                      # 六爻知识库（卦象、爻辞、用神）
-├── liuyao_engine.py                  # 六爻推理引擎（排卦、断卦）
-├── llm.py                            # LLM 调用封装（Agent 推理）
-├── server.py                         # Flask API 服务器
-├── share_render.py                   # 分享图渲染（SVG/PNG）
-├── storage.py                        # 数据存储（本地 JSON）
-├── validation.py                     # 输入校验
-└── tests/
-    └── test_api_contracts.py         # API 契约测试
-```
-
-| 文件 | 作用 |
-|------|------|
-| `knowledge.py` | 六爻知识库，包含 64 卦、384 爻、用神规则、六亲关系 |
-| `liuyao_engine.py` | 六爻推理引擎，实现排卦（装卦、纳甲、六亲）、断卦逻辑 |
-| `llm.py` | LLM 调用封装，将卦象信息发送给 Agent 进行智能解读 |
-| `server.py` | Flask API 服务器，提供起卦、解读、追问等 HTTP 接口 |
-| `share_render.py` | 分享图渲染，将卦象和解读生成可分享的 SVG/PNG 图片 |
-| `storage.py` | 本地数据存储，使用 JSON 文件保存会话和用户数据 |
-| `validation.py` | 输入参数校验，验证问题、卦象、动爻等参数合法性 |
-| `test_api_contracts.py` | API 契约测试，验证请求/响应格式一致性 |
 
 ---
 
@@ -253,6 +220,8 @@ backend-node/scripts/
 backend-node/src/
 ├── app.js                            # Express app 工厂
 ├── server.js                         # 服务器启动入口
+├── adapters/
+│   └── liuyao-agent.js               # 独立六爻 Agent 服务适配边界
 ├── config/
 │   └── env.js                        # 环境变量校验（Zod）
 ├── db/
@@ -264,7 +233,7 @@ backend-node/src/
 │   ├── rate-limit.js                 # 限流（PostgreSQL/memory）
 │   ├── request-id.js                 # 请求 ID 生成
 │   └── validate.js                   # Zod 参数校验
-├── modules/                          # 业务模块（14 个）
+├── modules/                          # 业务模块（15 个）
 │   ├── activities/                   # 活动模块
 │   ├── admin/                        # 管理后台
 │   ├── analytics/                    # 数据分析
@@ -377,10 +346,10 @@ backend-node/test/
          ├── 认证 → JWT Token
          ├── 仪式 → 起卦数据 → PostgreSQL
          ├── 社区 → 帖子/评论 → PostgreSQL
-         └── Agent 调用 → Python 六爻后端 (backend)
-                            ├── liuyao_engine.py → 排卦
-                            ├── knowledge.py → 知识库
-                            └── llm.py → LLM 解读
+         └── Agent 边界 → 独立六爻 Agent 服务
+                            ├── service-to-service token
+                            ├── 请求/响应适配与校验
+                            └── 未来接入解读生成与 SSE relay
 ```
 
 ---
@@ -391,7 +360,7 @@ backend-node/test/
 |------|------|
 | 前端 | Flutter (Dart) |
 | 业务后端 | Node.js + Express 5 + Prisma + PostgreSQL 16 |
-| 推理后端 | Python + Flask |
+| Agent 边界 | 独立服务适配器（`backend-node/src/adapters/liuyao-agent.js`） |
 | 数据库 | PostgreSQL 16 |
 | ORM | Prisma 6.9 |
 | 校验 | Zod |

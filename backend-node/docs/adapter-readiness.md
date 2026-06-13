@@ -51,8 +51,8 @@ npm run ops:adapter-check
 | Object storage | Upload, public URL fetch, avatar/cover reference, and cleanup verification. |
 | Push | FCM or APNS test push delivery result and worker job ID. |
 | Payment | Signed callback accepted, invalid signature rejected, order status updated. |
-| Liuyao Agent | Service-to-service auth accepted and timeout/failure path tested when adapter is implemented. |
+| Liuyao Agent | Service-to-service auth accepted, adapter request/response fixtures pass, and timeout/failure path tested against staging. |
 
 ## Current Status
 
-The backend now has automated configuration checks and unit tests for the adapter readiness gate. Real provider regression remains an external staging task, so `ADAPTER-001` is still marked as partial in `PROGRESS.md`.
+The backend now has automated configuration checks, unit tests for the adapter readiness gate, and a server-side Liuyao Agent adapter boundary in `src/adapters/liuyao-agent.js`. Real provider and live Agent regression remain external staging tasks, so `ADAPTER-001` is still marked as partial in `PROGRESS.md`.

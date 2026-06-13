@@ -1,20 +1,18 @@
 # Liuyao Agent Project
 
-This repository contains the full Liuyao agent workspace:
+This repository contains the maintained Liuyao business backend workspace:
 
-- `frontend/`: Flutter app.
 - `backend-node/`: Node.js business backend with PostgreSQL and Prisma.
-- `backend/`: Python local Liuyao backend scaffold.
+- `frontend/`: Flutter app snapshot.
 - `docs/`: product, backend, and project documentation.
 - `六爻/`: Liuyao knowledge base materials.
 
 ## Prerequisites
 
 - Git
-- Flutter 3.44.x or compatible stable Flutter SDK
-- Node.js 20 LTS or newer
-- Python 3.10 or newer
+- Node.js 24 or compatible active LTS
 - Docker Desktop, recommended for local PostgreSQL
+- Flutter 3.44.x or compatible stable Flutter SDK, only when working on the Flutter app
 
 ## Clone
 
@@ -25,7 +23,7 @@ cd -liuyao-agent
 
 ## Run The Node Backend
 
-The Node backend is the main business API backend.
+The Node backend is the maintained business API backend.
 
 ```powershell
 cd backend-node
@@ -84,22 +82,6 @@ For Android emulator override:
 flutter run --dart-define=BUSINESS_API_BASE_URL=http://10.0.2.2:3000/api/v1
 ```
 
-## Optional Python Backend
-
-The Python backend is a local scaffold that uses only the Python standard library.
-
-```powershell
-python backend/server.py
-```
-
-Its default API base is also:
-
-```text
-http://127.0.0.1:3000/api/v1
-```
-
-Do not run the Python backend and Node backend on port `3000` at the same time.
-
 ## Verification
 
 Backend Node:
@@ -110,12 +92,6 @@ npm run lint
 npm test
 ```
 
-Python backend:
-
-```powershell
-python -m unittest discover -s backend/tests
-```
-
 Flutter:
 
 ```powershell
@@ -124,6 +100,12 @@ flutter test
 ```
 
 `flutter analyze` currently reports existing info-level lint items in older UI files. The test suite still passes.
+
+## Production Notes
+
+- `backend-node/` is the only maintained backend in this repository.
+- Set `IDEMPOTENCY_STORE=database` outside local development so `Idempotency-Key` replays are backed by PostgreSQL.
+- Configure `LIUYAO_AGENT_URL` and `LIUYAO_AGENT_TOKEN` only after the independent Liuyao Agent service is available.
 
 ## Files Not Committed
 

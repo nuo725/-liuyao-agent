@@ -1,11 +1,25 @@
 services:
   - type: web
     name: zhouyi-backend
-    runtime: python
-    rootDir: backend
-    buildCommand: pip install -r requirements.txt
-    startCommand: python server.py
+    runtime: node
+    rootDir: backend-node
+    buildCommand: npm ci && npm run db:generate && npm run db:deploy
+    startCommand: npm start
     envVars:
-      - key: PYTHON_VERSION
-        value: "3.11"
+      - key: NODE_VERSION
+        value: "24"
+      - key: NODE_ENV
+        value: production
+      - key: IDEMPOTENCY_STORE
+        value: database
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: PAYMENT_CALLBACK_SECRET
+        sync: false
+      - key: LIUYAO_AGENT_URL
+        sync: false
+      - key: LIUYAO_AGENT_TOKEN
+        sync: false
     plan: free
