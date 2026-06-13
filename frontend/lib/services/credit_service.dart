@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/credit.dart';
+import 'api_config.dart';
 
 abstract class CreditService {
   Future<CreditAccount?> getAccount(String userId);
@@ -37,11 +38,7 @@ class CreditException implements Exception {
 }
 
 class CreditConfig {
-  static const String backendBaseUrl = String.fromEnvironment(
-    'BUSINESS_API_BASE_URL',
-    defaultValue:
-        'https://polyphonically-plagiocephalic-genesis.ngrok-free.dev/v1',
-  );
+  static String get backendBaseUrl => ApiConfig.businessBaseUrl;
 
   static const bool allowDevFallback = bool.fromEnvironment(
     'CREDIT_ALLOW_DEV_FALLBACK',

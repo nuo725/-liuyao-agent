@@ -4,6 +4,8 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
+import 'api_config.dart';
+
 void _dlog(String message) {
   if (kDebugMode) debugPrint(message);
 }
@@ -15,12 +17,7 @@ class LiuyaoAgentConfig {
   /// - Web: http://localhost:3000/api/v1
   /// - Android Emulator: http://10.0.2.2:3000/api/v1
   static String get baseUrl {
-    return _runtimeUrl.isNotEmpty
-        ? _runtimeUrl
-        : const String.fromEnvironment(
-            'LIUYAO_API_BASE_URL',
-            defaultValue: 'http://10.0.2.2:3000/api/v1',
-          );
+    return _runtimeUrl.isNotEmpty ? _runtimeUrl : ApiConfig.liuyaoBaseUrl;
   }
 
   static String _runtimeUrl = '';

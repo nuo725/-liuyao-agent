@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'api_config.dart';
+
 // ============================================================================
 // 通知服务
 // ============================================================================
@@ -290,11 +292,7 @@ class LocalNotificationServiceImpl implements NotificationService {
 /// 生产环境混合实现（API + 本地缓存）
 /// TODO(Backend Integration)[message_api#hybrid]: 完成 API 调用实现
 class HybridNotificationServiceImpl implements NotificationService {
-  static const String _baseUrl = String.fromEnvironment(
-    'BUSINESS_API_BASE_URL',
-    defaultValue:
-        'https://polyphonically-plagiocephalic-genesis.ngrok-free.dev/v1',
-  );
+  static String get _baseUrl => ApiConfig.businessBaseUrl;
 
   SharedPreferences? _prefs;
 

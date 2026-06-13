@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/feed_item.dart';
 import '../models/interpretation_card.dart';
 import '../models/pattern.dart';
+import 'api_config.dart';
 
 abstract class FeedService {
   Future<FeedResult> getRecommendFeed({
@@ -54,10 +55,7 @@ class FeedResult {
 }
 
 class FeedApiClient {
-  static const String _baseUrl = String.fromEnvironment(
-    'BUSINESS_API_BASE_URL',
-    defaultValue: '',
-  );
+  static String get _baseUrl => ApiConfig.businessBaseUrl;
 
   final http.Client _client;
 

@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'api_config.dart';
+
 enum ActivityJoinStatus {
   none('未报名', 'none'),
   pending('待确认', 'pending'),
@@ -118,11 +120,7 @@ abstract class ActivityService {
 }
 
 class ActivityApiClient {
-  static const String _baseUrl = String.fromEnvironment(
-    'BUSINESS_API_BASE_URL',
-    defaultValue:
-        'https://polyphonically-plagiocephalic-genesis.ngrok-free.dev/v1',
-  );
+  static String get _baseUrl => ApiConfig.businessBaseUrl;
   static const bool _allowDevFallback = bool.fromEnvironment(
     'ACTIVITY_ALLOW_DEV_FALLBACK',
     defaultValue: false,
