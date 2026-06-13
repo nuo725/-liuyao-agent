@@ -16,12 +16,26 @@ on:
 jobs:
   lint-test:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: test
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U test -d test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
     defaults:
       run:
         working-directory: backend-node
     env:
       NODE_ENV: test
-      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/zhouyi_ci?schema=public
+      DATABASE_URL: postgresql://test:test@localhost:5432/test?schema=public
       JWT_SECRET: ci_jwt_secret_change_me_please_32_chars_minimum
       JWT_ACCESS_TTL: 7200
       JWT_REFRESH_TTL: 2592000
@@ -36,5 +50,6 @@ jobs:
           cache-dependency-path: backend-node/package-lock.json
       - run: npm ci
       - run: npm run db:generate
+      - run: npm run db:deploy
       - run: npm run lint
       - run: npm test
