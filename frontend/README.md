@@ -1,21 +1,29 @@
-# Zhouyi App (UI Simulation First)
+# Zhouyi Flutter App
 
-This repository contains a Flutter mobile app focused on UI simulation workflows.
+This is the Flutter frontend for the Liuyao agent project.
 
-## Current Product Scope
+## Backend Connection
 
-- Community stream: `Recommended` + `Deep Talk` tabs only.
-- Ritual flow: question -> cast -> response -> follow-up -> history.
-- Message center: filters, unread sync, mark-read, delete, detail, pull-to-refresh simulation.
-- Profile and activity modules remain UI-first with local persistence.
+The app reads backend configuration from Dart defines.
 
-## Backend Integration Status
+Default local backend URLs:
 
-- Runtime remains UI-only in this iteration.
-- Integration points are reserved through `TODO(Backend Integration)[module_api#anchor]` markers.
-- API handoff docs live in `docs/modules/`.
+- Android emulator: `http://10.0.2.2:3000/api/v1`
+- Web, Windows, macOS, Linux: `http://localhost:3000/api/v1`
 
-## Development
+Override the business API URL:
+
+```bash
+flutter run --dart-define=BUSINESS_API_BASE_URL=http://localhost:3000/api/v1
+```
+
+Override only Liuyao agent API calls:
+
+```bash
+flutter run --dart-define=LIUYAO_API_BASE_URL=http://localhost:3000/api/v1
+```
+
+## Development Commands
 
 ```bash
 flutter pub get
@@ -24,8 +32,9 @@ flutter test
 flutter build apk --release
 ```
 
-## Versioning and Rollback
+`flutter analyze` currently reports existing info-level lint items in older UI files. `flutter test` passes.
 
-- See `docs/VERSIONING_AND_ROLLBACK.md`.
-- Use module tags for rollback safety.
-- Docs index: `docs/README.md`.
+## Documentation
+
+- Root setup guide: `../README.md`
+- Docs index: `../docs/README.md`
